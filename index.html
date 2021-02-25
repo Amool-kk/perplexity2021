@@ -12,15 +12,19 @@
     <span>$</span><input type="number" placeholder="Amount" id="amt" />
     <button id="bid">Bid</button>
     <br /><br /><br />
+    <h4 id="timer">Time left:</h4>
     <h3>Bid History:</h3>
     <ul id="bidders"></ul>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
     <script>
       let name;
+      let interval;
+      let timer = document.getElementById("timer");
+      let time = 10;
       let bids;
       let amount = document.getElementById("amt");
       let bidList = document.getElementById("bidders");
-      const bidButton = document.getElementById("bid");
+      let bidButton = document.getElementById("bid");
       let socket = io.connect("http://localhost:3000");
       socket.on("login", function (content) {
         name = content["name"];
@@ -28,20 +32,34 @@
           "name"
         ).innerHTML = `<strong>Name: ${name}</strong>`;
         bids = content["bids"];
-        bids.forEach((bid)=>{
+        bids.forEach((bid) => {
           bidList.innerHTML += `<li>${bid["name"]}  $${bid["amount"]}`;
         });
       });
 
       socket.on("bid", (content) => {
+        if (content["name"] === name)
+          bidButton.disabled = true;
+        else bidButton.disabled = false;
+
         bidList.innerHTML += `<li>${content["name"]}  $${content["amount"]}</li>`;
+        time = 10;
+        clearInterval(interval);
+        interval = setInterval(()=>{
+          if(time == 0)
+            clearInterval(interval);
+            
+          timer.innerHTML = `Time left: ${time}s`;
+          time--;
+        },1000);
       });
 
       function bid() {
         socket.emit("bid", { name: name, amount: amount.value });
+        amount.value = "";
       }
 
-      bidButton.addEventListener("click",bid);
+      bidButton.addEventListener("click", bid);
     </script>
   </body>
 </html>
