@@ -63,6 +63,6 @@ module.exports.login_post = async (req, res) => {
 };
 
 module.exports.logout_get = (req, res) => {
-  res.clearCookie(jwt);
+  res.clearCookie('jwt');
   res.redirect("/");
 };

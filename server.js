@@ -43,7 +43,6 @@ app.get("*", checkUser);
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
-
 app.use(authRoutes);
 
 io.on("connection", (socket) => {
