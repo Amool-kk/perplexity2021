@@ -61,3 +61,23 @@ module.exports.isAuthenticated = (req, res, next) => {
     next();
   }
 };
+
+// Check if user is admin
+module.exports.isAdmin = (req, res, next) => {
+  const token = req.cookies.jwt;
+  if (token) {
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decodedToken) => {
+      if (err) {
+        console.log(err.message);
+        res.redirect("/");
+      } else {
+        let user = await User.findById(decodedToken.id);
+        if (user.role == "admin") {
+          next();
+        }
+      }
+    });
+  } else {
+    res.redirect("/");
+  }
+};
