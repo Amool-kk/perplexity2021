@@ -72,10 +72,10 @@ module.exports.isAdmin = (req, res, next) => {
         res.redirect("/");
       } else {
         let user = await User.findById(decodedToken.id);
+        console.log(user);
         if (user.role == "admin") {
           next();
-        }
-        res.redirect("/");
+        } else res.redirect("/");
       }
     });
   } else {

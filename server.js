@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
 const questionRoutes = require("./routes/questionRoutes");
-const { checkUser, isAdmin } = require("./middleware/authMiddleware");
+const { checkUser } = require("./middleware/authMiddleware");
 let rug = require("random-username-generator");
 
 const app = express();
