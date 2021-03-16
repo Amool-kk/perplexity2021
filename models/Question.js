@@ -2,7 +2,10 @@ const mongoose = require("mongoose");
 
 const questionSchema = new mongoose.Schema({
   text: String,
-  category: String,
+  category: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+  },
   answer: String,
   points: { type: Number, default: 100 },
   disabled: { type: Boolean, default: false },

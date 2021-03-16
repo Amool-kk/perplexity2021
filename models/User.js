@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
-const userSchema = new mongoose.Schema({
+const userSchema = mongoose.Schema({
   email: {
     type: String,
     required: [true, "Please provide email"],
@@ -12,6 +12,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please provide password"],
     minlength: [8, "min password length is 8 characters"],
+  },
+  role: {
+    type: String,
+    enum: ["admin", "user"],
+    default: "user",
   },
 });
 
