@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
 const questionRoutes = require("./routes/questionRoutes");
-const { checkUser } = require("./middleware/authMiddleware");
+const { checkUser, isAdmin } = require("./middleware/authMiddleware");
 let rug = require("random-username-generator");
 
 const app = express();
@@ -46,6 +46,7 @@ app.get("/", (req, res) => {
   res.render("home");
 });
 app.use(authRoutes);
+// app.get("/admin*",isAdmin);
 app.use("/admin", questionRoutes);
 
 io.on("connection", (socket) => {

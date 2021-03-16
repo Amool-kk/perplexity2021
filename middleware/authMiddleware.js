@@ -75,6 +75,7 @@ module.exports.isAdmin = (req, res, next) => {
         if (user.role == "admin") {
           next();
         }
+        res.redirect("/");
       }
     });
   } else {
