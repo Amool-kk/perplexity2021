@@ -9,6 +9,7 @@ const questionSchema = new mongoose.Schema({
   answer: String,
   points: { type: Number, default: 100 },
   disabled: { type: Boolean, default: false },
+  duration: String,
 });
 
 const Question = mongoose.model("question", questionSchema);

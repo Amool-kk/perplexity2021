@@ -5,6 +5,7 @@ const socket = require("socket.io");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
+const questionRoutes = require("./routes/questionRoutes");
 const { checkUser } = require("./middleware/authMiddleware");
 let rug = require("random-username-generator");
 
@@ -45,6 +46,7 @@ app.get("/", (req, res) => {
   res.render("home");
 });
 app.use(authRoutes);
+app.use("/admin", questionRoutes);
 
 io.on("connection", (socket) => {
   console.log("Socket Connection: ", socket.id);

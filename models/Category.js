@@ -9,7 +9,6 @@ const categorySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Question",
   },
-  duration: String,
 });
 
 const Category = mongoose.model("category", categorySchema);
