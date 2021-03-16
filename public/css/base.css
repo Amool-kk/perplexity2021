@@ -1,0 +1,127 @@
+@font-face {
+  font-family: PerfectDarkBRK;
+  src: url("../fonts/pdark.ttf");
+}
+
+@font-face {
+  font-family: Zekton;
+  src: url("../fonts/zekton\ rg.ttf");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Zekton;
+}
+
+html {
+  text-rendering: optimizeLegibility;
+}
+
+.bg {
+  height: 100vh;
+  background-size: cover;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+    url("../img/bg1.jpg");
+  background-position: center center;
+  z-index: -1;
+}
+
+.glow {
+  font-size: 80px;
+  color: #fff;
+  text-align: center;
+  -webkit-animation: neon 0.1s ease-in-out infinite alternate;
+  -moz-animation: neon 0.1s ease-in-out infinite alternate;
+  animation: neon 0.1s ease-in-out infinite alternate;
+}
+
+@-webkit-keyframes neon {
+  from {
+    text-shadow: 0 0 6px rgba(202, 228, 225, 0.92),
+      0 0 30px rgba(202, 228, 225, 0.34), 0 0 12px rgba(30, 132, 242, 0.52),
+      0 0 21px rgba(30, 132, 242, 0.92), 0 0 34px rgba(30, 132, 242, 0.78),
+      0 0 54px rgba(30, 132, 242, 0.92);
+  }
+  to {
+    text-shadow: 0 0 6px rgba(202, 228, 225, 0.98),
+      0 0 30px rgba(202, 228, 225, 0.42), 0 0 12px rgba(30, 132, 242, 0.58),
+      0 0 22px rgba(30, 132, 242, 0.84), 0 0 38px rgba(30, 132, 242, 0.88),
+      0 0 60px #1e84f2;
+  }
+}
+@keyframes neon {
+  from {
+    text-shadow: 0 0 6px rgba(202, 228, 225, 0.92),
+      0 0 30px rgba(202, 228, 225, 0.34), 0 0 12px rgba(30, 132, 242, 0.52),
+      0 0 21px rgba(30, 132, 242, 0.92), 0 0 34px rgba(30, 132, 242, 0.78),
+      0 0 54px rgba(30, 132, 242, 0.92);
+  }
+  to {
+    text-shadow: 0 0 6px rgba(202, 228, 225, 0.98),
+      0 0 30px rgba(202, 228, 225, 0.42), 0 0 12px rgba(30, 132, 242, 0.58),
+      0 0 22px rgba(30, 132, 242, 0.84), 0 0 38px rgba(30, 132, 242, 0.88),
+      0 0 60px #1e84f2;
+  }
+}
+
+.container {
+  width: 100vw;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  left: 50%;
+  top: 50%;
+  text-align: center;
+}
+
+#title {
+  font-family: PerfectDarkBRK;
+  font-size: 5vw;
+  text-align: center;
+  margin-bottom: 2%;
+}
+
+#footer {
+  position: absolute;
+  bottom: 0;
+  margin-bottom: 1%;
+}
+
+#footer div {
+  width: 100vw;
+  text-align: center;
+}
+
+#footer h2 {
+  font-family: Zekton;
+  color: white;
+  font-size: 1.5vw;
+  margin-bottom: 1%;
+}
+
+a {
+  text-decoration: none;
+}
+
+.social {
+  color: white;
+  margin: 0 1%;
+  font-size: 30px;
+}
+
+#arhn {
+  position: absolute;
+  left: 2%;
+  top: 2%;
+  width: 80px;
+  height: auto;
+}
+
+#glug {
+  position: absolute;
+  right: 2%;
+  top: 2%;
+  width: 80px;
+  height: auto;
+}
