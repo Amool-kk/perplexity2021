@@ -107,9 +107,6 @@ html {
   background: rgb(15, 15, 15);
   border: 3px solid rgb(0, 40, 70);
   cursor: pointer;
-}
-
-.btn:hover {
   animation: border-flicker 2s linear forwards;
 }
 
@@ -119,13 +116,11 @@ html {
   font-size: 2vw;
   margin: 5% 0;
   color: rgba(120, 0, 50, 0.5);
+  animation: text-flicker 2s linear infinite alternate;
 }
 
-.btn:hover h1 {
-  animation: text-flicker 2s linear forwards;
-}
 
-.btn:hover .first {
+.btn .first {
   animation: letter-flicker 3s linear infinite;
 }
 
