@@ -10,7 +10,7 @@ const { isAdmin } = require("../middleware/authMiddleware");
 
 const router = Router();
 
-router.get("/category", isAdmin, category_get);
+router.get("/category", category_get);
 router.post("/category", category_post);
 router.get("/question", question_get);
 router.post("/question", question_post);

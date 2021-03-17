@@ -4,10 +4,10 @@ const http = require("http");
 const socket = require("socket.io");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser");
 const authRoutes = require("./routes/authRoutes");
 const questionRoutes = require("./routes/questionRoutes");
-const { checkUser } = require("./middleware/authMiddleware");
-let rug = require("random-username-generator");
+const { checkUser, isAdmin } = require("./middleware/authMiddleware");
 
 const app = express();
 const server = http.createServer(app);
@@ -15,6 +15,7 @@ const port = process.env.PORT || 3000;
 
 // middleware
 app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -46,7 +47,7 @@ app.get("/", (req, res) => {
   res.render("home");
 });
 app.use(authRoutes);
-// app.get("/admin*",isAdmin);
+app.get("/admin*", isAdmin);
 app.use("/admin", questionRoutes);
 
 io.on("connection", (socket) => {

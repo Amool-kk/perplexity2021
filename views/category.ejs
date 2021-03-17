@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Perplexity</title>
+  </head>
+  <body>
+    <form action="/admin/category" method="POST">
+      <label for="name">Category Name: </label>
+      <input name="name" type="text" />
+      <br />
+      <br />
+      <button type="submit">Submit</button>
+    </form>
+    <br /><br />
+
+    <% categories.forEach((category) => { %>
+    <p><%= category %></p>
+    <br />
+    <% }); %>
+  </body>
+</html>
