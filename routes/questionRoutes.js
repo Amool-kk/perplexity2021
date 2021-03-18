@@ -6,7 +6,6 @@ const {
   question_get,
   question_post,
 } = require("../controllers/quesControllers");
-const { isAdmin } = require("../middleware/authMiddleware");
 
 const router = Router();
 

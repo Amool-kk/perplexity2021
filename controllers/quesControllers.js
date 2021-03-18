@@ -1,5 +1,5 @@
 const Category = require("../models/Category");
-const {Question} = require("../models/Question");
+const { Question } = require("../models/Question");
 
 module.exports.category_get = async (req, res) => {
   const categories = await Category.find({});
@@ -31,8 +31,6 @@ module.exports.question_post = async (req, res) => {
   console.log(req.body);
   const { text, answer, points, duration, category_name } = req.body;
   try {
-    const category = await Category.findOne({ name: category_name });
-    const cid = category._id;
     const question = await Question.create({
       text,
       answer,
@@ -40,7 +38,10 @@ module.exports.question_post = async (req, res) => {
       duration,
       category: category_name,
     });
-    await Category.updateOne({ _id: cid }, { $push: { questions: question } });
+    await Category.updateOne(
+      { name: category_name },
+      { $push: { questions: question } }
+    );
     res.redirect("/admin/question");
     // res.status(201).json({ question });
   } catch (err) {

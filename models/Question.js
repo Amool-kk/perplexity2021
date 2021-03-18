@@ -1,11 +1,6 @@
 const mongoose = require("mongoose");
 
 const questionSchema = new mongoose.Schema({
-  text: String,
-  // category: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: "Category",
-  // },
   category: String,
   answer: String,
   points: { type: Number, default: 100 },
@@ -15,4 +10,4 @@ const questionSchema = new mongoose.Schema({
 
 const Question = mongoose.model("question", questionSchema);
 
-module.exports = {Question,questionSchema};
+module.exports = { Question, questionSchema };
