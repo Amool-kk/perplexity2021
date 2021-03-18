@@ -45,7 +45,7 @@ class TypeWriter {
       // Move to the next word
       this.wordIndex++;
       // Pause before start typing
-      typeSpeed = 500;
+      typeSpeed = 600;
     }
 
     setTimeout(() => {

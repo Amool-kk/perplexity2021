@@ -4,10 +4,13 @@ const http = require("http");
 const socket = require("socket.io");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-const bodyParser = require("body-parser");
 const authRoutes = require("./routes/authRoutes");
 const questionRoutes = require("./routes/questionRoutes");
-const { checkUser, isAdmin } = require("./middleware/authMiddleware");
+const {
+  checkUser,
+  isAdmin,
+  requireAuth,
+} = require("./middleware/authMiddleware");
 
 const app = express();
 const server = http.createServer(app);
@@ -49,6 +52,10 @@ app.get("/", (req, res) => {
 app.use(authRoutes);
 app.get("/admin*", isAdmin);
 app.use("/admin", questionRoutes);
+
+app.get("/game", requireAuth, (req, res) => {
+  res.render("game");
+});
 
 io.on("connection", (socket) => {
   console.log("Socket Connection: ", socket.id);
