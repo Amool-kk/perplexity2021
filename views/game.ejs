@@ -1,18 +1,42 @@
-<%- include('partials/header'); -%>
+<!-- <%- include('partials/header'); -%> -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Perplexity 2021</title>
+    <link rel="stylesheet" href="css/game.css" />
+  </head>
+  <body>
+    <h1>Let's Bid</h1>
+    <p id="player-id" hidden><%= user._id %></p>
+    <nav>
+      <h1><a href="/">Perplexity</a></h1>
+      <ul>
+        <% if (user) { %>
+        <li>Welcome, <%= user.name %></li>
+        <img src="<%= user.profilePhoto %> " alt="" />
+        <li><a href="/logout">Log out</a></li>
+        <% } else { %>
+        <li><a href="/login">Log in</a></li>
+        <li><a href="/signup" class="btn">Sign up</a></li>
+        <% } %>
+      </ul>
+      <p><%= %></p>
+    </nav>
 
-<h1>Game Begins Here</h1>
+    <input type="number" name="bid-value" id="amt" placeholder="Amount" />
+    <p id="name"></p>
+    <button id="bid">Bid</button>
+    <br /><br /><br />
+    <h4 id="timer">Time left:</h4>
+    <br /><br />
+    <h2>Bid History:</h2>
+    <ul id="bidders"></ul>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
+    <script src="js/index.js"></script>
+  </body>
+</html>
 
-<nav>
-  <h1><a href="/">Perplexity</a></h1>
-  <ul>
-    <% if (user) { %>
-    <li>Welcome, <%= user.email %></li>
-    <li><a href="/logout">Log out</a></li>
-    <% } else { %>
-    <li><a href="/login">Log in</a></li>
-    <li><a href="/signup" class="btn">Sign up</a></li>
-    <% } %>
-  </ul>
-</nav>
-
-<%- include('partials/footer'); -%>
+<!-- <%- include('partials/footer'); -%> -->

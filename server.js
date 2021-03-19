@@ -9,11 +9,12 @@ const session = require("express-session");
 require("./passportSetup");
 const authRoutes = require("./routes/authRoutes");
 const questionRoutes = require("./routes/questionRoutes");
-// const {
-//   checkUser,
-//   isAdmin,
-//   requireAuth,
-// } = require("./middleware/authMiddleware");
+const {
+  isAdmin,
+  checkUser,
+  requireAuth,
+} = require("./middleware/authMiddleware");
+const User = require("./models/User");
 
 const app = express();
 const server = http.createServer(app);
@@ -27,8 +28,8 @@ app.use(cookieParser());
 
 app.use(
   session({
-    secret: "Some random secret",
-    resave: false,
+    secret: process.env.SECRET,
+    resave: true,
     saveUninitialized: false,
   })
 );
@@ -58,23 +59,34 @@ mongoose
 
 let bids = [];
 
-// app.get("*", checkUser);
+app.get("*", checkUser);
 app.get("/", (req, res) => {
-  console.log(req.isAuthenticated());
-  console.log(req.user);
   res.render("home");
 });
+
 app.use(authRoutes);
-// app.get("/admin*", isAdmin);
+
+app.get("/admin*", isAdmin);
 app.use("/admin", questionRoutes);
 
-// app.get("/game", requireAuth, (req, res) => {
-//   res.render("game");
-// });
+app.get("/game", requireAuth, (req, res) => {
+  res.render("game");
+});
+
+/////////////////////////////
+// Sockets //
+/////////////////////////////
 
 io.on("connection", (socket) => {
-  console.log("Socket Connection: ", socket.id);
-  socket.emit("login", { name: rug.generate(), bids: bids });
+  console.log("Made Socket Connection: ", socket.id);
+  // socket.emit("login", { name: rug.generate(), bids: bids });
+
+  socket.on("start", () => {
+    const users = User.find({ role: "user" });
+    io.sockets.emit("start", {
+      bidPlayer: users[0],
+    });
+  });
 
   socket.on("bid", (content) => {
     console.log(content);
