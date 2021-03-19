@@ -9,7 +9,7 @@ passport.serializeUser(function (user, done) {
 });
 
 passport.deserializeUser(function (id, done) {
-  User.findbyId(id, function (err, user) {
+  User.findOne({ _id: id }, function (err, user) {
     done(err, user);
   });
 });
@@ -25,7 +25,7 @@ passport.use(
       User.findOrCreate(
         {
           oauthID: profile.id,
-          name: `${profile.name.givenName} ${profile.name.familyNam}e`,
+          name: `${profile.name.givenName} ${profile.name.familyName}`,
           profilePhoto: profile.photos[0].value,
         },
         function (err, user) {

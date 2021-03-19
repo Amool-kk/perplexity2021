@@ -4,6 +4,9 @@ const http = require("http");
 const socket = require("socket.io");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
+const passport = require("passport");
+const session = require("express-session");
+require("./passportSetup");
 const authRoutes = require("./routes/authRoutes");
 const questionRoutes = require("./routes/questionRoutes");
 // const {
@@ -11,9 +14,6 @@ const questionRoutes = require("./routes/questionRoutes");
 //   isAdmin,
 //   requireAuth,
 // } = require("./middleware/authMiddleware");
-const passport = require("passport");
-const session = require("express-session");
-require("./passportSetup");
 
 const app = express();
 const server = http.createServer(app);
