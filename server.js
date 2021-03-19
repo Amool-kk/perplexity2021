@@ -6,11 +6,14 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
 const questionRoutes = require("./routes/questionRoutes");
-const {
-  checkUser,
-  isAdmin,
-  requireAuth,
-} = require("./middleware/authMiddleware");
+// const {
+//   checkUser,
+//   isAdmin,
+//   requireAuth,
+// } = require("./middleware/authMiddleware");
+const passport = require("passport");
+const session = require("express-session");
+require("./passportSetup");
 
 const app = express();
 const server = http.createServer(app);
@@ -21,6 +24,17 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
+
+app.use(
+  session({
+    secret: "Some random secret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 // view engine
 app.set("view engine", "ejs");
@@ -44,18 +58,19 @@ mongoose
 
 let bids = [];
 
-app.get("*", checkUser);
+// app.get("*", checkUser);
 app.get("/", (req, res) => {
-  // res.sendFile(__dirname + "/index.html");
+  console.log(req.isAuthenticated());
+  console.log(req.user);
   res.render("home");
 });
 app.use(authRoutes);
-app.get("/admin*", isAdmin);
+// app.get("/admin*", isAdmin);
 app.use("/admin", questionRoutes);
 
-app.get("/game", requireAuth, (req, res) => {
-  res.render("game");
-});
+// app.get("/game", requireAuth, (req, res) => {
+//   res.render("game");
+// });
 
 io.on("connection", (socket) => {
   console.log("Socket Connection: ", socket.id);
