@@ -15,6 +15,7 @@ const {
   requireAuth,
 } = require("./middleware/authMiddleware");
 const User = require("./models/User");
+const Category = require("./models/Category");
 
 const app = express();
 const server = http.createServer(app);
@@ -81,17 +82,22 @@ io.on("connection", (socket) => {
   console.log("Made Socket Connection: ", socket.id);
   // socket.emit("login", { name: rug.generate(), bids: bids });
 
-  socket.on("start", () => {
-    const users = User.find({ role: "user" });
-    io.sockets.emit("start", {
-      bidPlayer: users[0],
-    });
-  });
+  // socket.on("start", async () => {
+  //   const users = await User.find({ role: "user" });
+  //   io.sockets.emit("start", {
+  //     bidPlayer: users[0],
+  //   });
+  // });
 
   socket.on("bid", (content) => {
     console.log(content);
-    socket.emit("bid", content);
-    socket.broadcast.emit("bid", content);
+    io.sockets.emit("bid", content);
     bids.push(content);
+  });
+
+  socket.on("stop-bid", async () => {
+    // Category Selection
+    const categories = await Category.find({}).select("name -_id");
+    console.log(categories);
   });
 });
