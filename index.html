@@ -27,6 +27,7 @@
       let bidButton = document.getElementById("bid");
       let socket = io.connect("http://localhost:3000");
       socket.on("login", function (content) {
+        console.log("login")
         name = content["name"];
         document.getElementById(
           "name"

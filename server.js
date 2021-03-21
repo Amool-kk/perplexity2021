@@ -16,6 +16,8 @@ const {
 } = require("./middleware/authMiddleware");
 const User = require("./models/User");
 const Category = require("./models/Category");
+const { Question } = require("./models/Question");
+const { start } = require("repl");
 
 const app = express();
 const server = http.createServer(app);
@@ -74,30 +76,107 @@ app.get("/game", requireAuth, (req, res) => {
   res.render("game");
 });
 
+let bidPlayer
+let idx=1
+
+//shift this to another place
+const startRound=()=>{
+  console.log(idx)
+  User.find({ role: "user" })
+  .then((players)=>{
+  // console.log("users", players)
+    users=players;
+    bidPlayer=users[idx]
+    console.log("first", bidPlayer)
+    io.sockets.emit('start',{
+      bidPlayer
+    })
+  })
+  .catch((err)=>{
+    console.log(err)
+  })
+}
+
 /////////////////////////////
 // Sockets //
 /////////////////////////////
 
+let max={
+  amount:0,
+  player:null
+};
+
 io.on("connection", (socket) => {
+
   console.log("Made Socket Connection: ", socket.id);
   // socket.emit("login", { name: rug.generate(), bids: bids });
 
-  // socket.on("start", async () => {
-  //   const users = await User.find({ role: "user" });
-  //   io.sockets.emit("start", {
-  //     bidPlayer: users[0],
-  //   });
-  // });
+  startRound();
 
-  socket.on("bid", (content) => {
-    console.log(content);
-    io.sockets.emit("bid", content);
+  socket.on("bid", async (content) => {
+    console.log("bid content", content);
+
+    max=max.amount>content.amount?max:{
+      amount:content.amount,
+      player:content.player,
+      lastCategory:await User.findById(content.player.id).select("lastCategory -_id")
+    };
+    console.log("max",max.lastCategory)
+    io.sockets.emit("bid", {content,bidPlayer});
     bids.push(content);
   });
 
   socket.on("stop-bid", async () => {
     // Category Selection
-    const categories = await Category.find({}).select("name -_id");
+    const categories = await Category.find({}).select("name -_id")
     console.log(categories);
+    io.sockets.emit("category", {categories, bidPlayer, max})
   });
+
+  let question
+
+  socket.on("chosenCategory",async ({chosenCategory,currentPlayer})=>{
+    console.log("they chose", chosenCategory)
+    user=await User.findByIdAndUpdate(currentPlayer.id,{lastCategory:chosenCategory})
+    console.log("last", user.lastCategory)
+    question= await Question.findOne({category:chosenCategory})
+    console.log(question)
+    io.sockets.emit("question",{question,bidPlayer, chosenCategory})
+  })
+
+  socket.on("answerGiven",async correct=>{
+    if(correct)
+    {
+      let bidder= await User.findByIdAndUpdate(bidPlayer._id,{
+        $inc:{
+          score:max.amount
+        }
+      }) 
+      let maxPlayer= await User.findByIdAndUpdate(max.player.id,{
+        $inc:{
+          score:-max.amount
+        }
+      })
+    }
+    else
+    {
+      let bidder= await User.findByIdAndUpdate(bidPlayer._id,{
+        $inc:{
+          score:-max.amount
+        }
+      }) 
+      let maxPlayer= await User.findByIdAndUpdate(max.player.id,{
+        $inc:{
+          score:max.amount
+        }
+      })
+    }
+    idx++;
+    if(idx===User.count({}))
+    {
+      idx=0;
+    }
+    io.sockets.emit("roundEnd")
+    startRound()
+  })
 });

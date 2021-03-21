@@ -20,6 +20,10 @@ const userSchema = mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  lastCategory:{
+    type: String,
+    default: null
+  }
 });
 
 // Fire a function after doc is saved to the db
