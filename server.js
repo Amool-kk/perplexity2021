@@ -5,7 +5,8 @@ const socket = require("socket.io");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const passport = require("passport");
-const session = require("express-session");
+// const session = require("express-session");
+const cookieSession = require("cookie-session");
 require("./passportSetup");
 const authRoutes = require("./routes/authRoutes");
 const questionRoutes = require("./routes/questionRoutes");
@@ -16,8 +17,6 @@ const {
 } = require("./middleware/authMiddleware");
 const User = require("./models/User");
 const Category = require("./models/Category");
-const { Question } = require("./models/Question");
-const { start } = require("repl");
 
 const app = express();
 const server = http.createServer(app);
@@ -27,13 +26,14 @@ const port = process.env.PORT || 3000;
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cookieParser());
+// app.use(cookieParser());
+
+const maxAge = 3 * 24 * 60 * 60;
 
 app.use(
-  session({
+  cookieSession({
     secret: process.env.SECRET,
-    resave: true,
-    saveUninitialized: false,
+    maxAge: maxAge * 1000,
   })
 );
 
@@ -76,107 +76,120 @@ app.get("/game", requireAuth, (req, res) => {
   res.render("game");
 });
 
-let bidPlayer
-let idx=1
-
-//shift this to another place
-const startRound=()=>{
-  console.log(idx)
-  User.find({ role: "user" })
-  .then((players)=>{
-  // console.log("users", players)
-    users=players;
-    bidPlayer=users[idx]
-    console.log("first", bidPlayer)
-    io.sockets.emit('start',{
-      bidPlayer
-    })
-  })
-  .catch((err)=>{
-    console.log(err)
-  })
-}
+let bidPlayer;
+let idx = 0;
 
 /////////////////////////////
 // Sockets //
 /////////////////////////////
 
-let max={
-  amount:0,
-  player:null
+let max = {
+  amount: 0,
+  player: null,
 };
 
 io.on("connection", (socket) => {
-
   console.log("Made Socket Connection: ", socket.id);
   // socket.emit("login", { name: rug.generate(), bids: bids });
 
-  startRound();
+  socket.on("start-game", async () => {
+    console.log(idx);
+    console.log("game started");
+    const users = await User.find({ role: "user", eligible: true });
+    bidPlayer = users[idx];
+    console.log("Player currently being bid on", bidPlayer);
+    io.sockets.emit("start", {
+      bidPlayer,
+    });
+  });
+
+  // Next round handling by the admin
+  socket.on("next-round", async () => {
+    // Eliminate the players and update the leaderboard
+    // choose the next player to be bid on
+
+    idx++;
+    if (idx === User.count({ role: "user", eligible: true })) {
+      idx = 0;
+    }
+    const users = await Users.find({ role: "user", eligible: true });
+    bidPlayer = users[idx];
+    console.log("Player currently being bid on", bidPlayer);
+    io.sockets.emit("start", {
+      bidPlayer,
+    });
+  });
 
   socket.on("bid", async (content) => {
     console.log("bid content", content);
 
-    max=max.amount>content.amount?max:{
-      amount:content.amount,
-      player:content.player,
-      lastCategory:await User.findById(content.player.id).select("lastCategory -_id")
-    };
-    console.log("max",max.lastCategory)
-    io.sockets.emit("bid", {content,bidPlayer});
+    max =
+      max.amount > content.amount
+        ? max
+        : {
+            amount: content.amount,
+            player: content.player,
+            lastCategory: await User.findById(content.player.id).select(
+              "lastCategory -_id"
+            ),
+          };
+    console.log("max", max.lastCategory);
+    io.sockets.emit("bid", { content, bidPlayer });
     bids.push(content);
   });
 
   socket.on("stop-bid", async () => {
     // Category Selection
-    const categories = await Category.find({}).select("name -_id")
+    const categories = await Category.find({}).select("name -_id");
     console.log(categories);
-    io.sockets.emit("category", {categories, bidPlayer, max})
+    io.sockets.emit("category", { categories, bidPlayer, max });
   });
 
-  let question
+  let question;
 
-  socket.on("chosenCategory",async ({chosenCategory,currentPlayer})=>{
-    console.log("they chose", chosenCategory)
-    user=await User.findByIdAndUpdate(currentPlayer.id,{lastCategory:chosenCategory})
-    console.log("last", user.lastCategory)
-    question= await Question.findOne({category:chosenCategory})
-    console.log(question)
-    io.sockets.emit("question",{question,bidPlayer, chosenCategory})
-  })
+  socket.on("chosenCategory", async ({ chosenCategory, currentPlayer }) => {
+    console.log("they chose", chosenCategory);
+    user = await User.findByIdAndUpdate(currentPlayer.id, {
+      lastCategory: chosenCategory,
+    });
+    console.log("last", user.lastCategory);
+    // question = await Question.findOne({ category: chosenCategory });
+    const questions = await Category.find({ name: chosenCategory }).select(
+      "questions -_id"
+    );
+    console.log(questions);
+    // const question = questions.find({ disabled: false })[0];
+    // question.disabled = true;
+    // question.save();
 
-  socket.on("answerGiven",async correct=>{
-    if(correct)
-    {
-      let bidder= await User.findByIdAndUpdate(bidPlayer._id,{
-        $inc:{
-          score:max.amount
-        }
-      }) 
-      let maxPlayer= await User.findByIdAndUpdate(max.player.id,{
-        $inc:{
-          score:-max.amount
-        }
-      })
+    // console.log(question);
+    io.sockets.emit("question", { question, bidPlayer, chosenCategory });
+  });
+
+  socket.on("answerGiven", async (correct) => {
+    if (correct) {
+      let bidder = await User.findByIdAndUpdate(bidPlayer._id, {
+        $inc: {
+          score: max.amount,
+        },
+      });
+      let maxPlayer = await User.findByIdAndUpdate(max.player.id, {
+        $inc: {
+          score: -max.amount,
+        },
+      });
+    } else {
+      let bidder = await User.findByIdAndUpdate(bidPlayer._id, {
+        $inc: {
+          score: -max.amount,
+        },
+      });
+      let maxPlayer = await User.findByIdAndUpdate(max.player.id, {
+        $inc: {
+          score: max.amount,
+        },
+      });
     }
-    else
-    {
-      let bidder= await User.findByIdAndUpdate(bidPlayer._id,{
-        $inc:{
-          score:-max.amount
-        }
-      }) 
-      let maxPlayer= await User.findByIdAndUpdate(max.player.id,{
-        $inc:{
-          score:max.amount
-        }
-      })
-    }
-    idx++;
-    if(idx===User.count({}))
-    {
-      idx=0;
-    }
-    io.sockets.emit("roundEnd")
-    startRound()
-  })
+    io.sockets.emit("roundEnd");
+  });
 });

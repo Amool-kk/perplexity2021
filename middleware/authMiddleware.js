@@ -8,7 +8,6 @@ module.exports.requireAuth = (req, res, next) => {
   } else {
     res.redirect("/login");
   }
-  const token = req.cookies.jwt;
 };
 
 // Check current user
