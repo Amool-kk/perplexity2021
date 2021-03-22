@@ -109,6 +109,8 @@ socket.on("category", ({ categories, bidPlayer, max }) => {
 });
 
 socket.on("question", ({ question, bidPlayer, chosenCategory }) => {
+  // bidPlayer can only give the answer
+  // Need to start a timer based on the question duration
   if (currentPlayer.id === bidPlayer._id) {
     console.log("hi");
     questionText.style.display = "inline";

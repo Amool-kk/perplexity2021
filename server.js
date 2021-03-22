@@ -3,9 +3,7 @@ const express = require("express");
 const http = require("http");
 const socket = require("socket.io");
 const mongoose = require("mongoose");
-const cookieParser = require("cookie-parser");
 const passport = require("passport");
-// const session = require("express-session");
 const cookieSession = require("cookie-session");
 require("./passportSetup");
 const authRoutes = require("./routes/authRoutes");
@@ -17,6 +15,7 @@ const {
 } = require("./middleware/authMiddleware");
 const User = require("./models/User");
 const Category = require("./models/Category");
+const Question = require("./models/Question");
 
 const app = express();
 const server = http.createServer(app);
@@ -26,7 +25,6 @@ const port = process.env.PORT || 3000;
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-// app.use(cookieParser());
 
 const maxAge = 3 * 24 * 60 * 60;
 
@@ -153,17 +151,14 @@ io.on("connection", (socket) => {
       lastCategory: chosenCategory,
     });
     console.log("last", user.lastCategory);
-    // question = await Question.findOne({ category: chosenCategory });
-    const questions = await Category.find({ name: chosenCategory }).select(
-      "questions -_id"
-    );
-    console.log(questions);
-    // const question = questions.find({ disabled: false })[0];
-    // question.disabled = true;
-    // question.save();
-
-    // console.log(question);
+    const question = await Question.findOne({
+      category: chosenCategory,
+      disabled: false,
+    });
+    console.log(question);
     io.sockets.emit("question", { question, bidPlayer, chosenCategory });
+    question.disabled = true;
+    question.save();
   });
 
   socket.on("answerGiven", async (correct) => {
