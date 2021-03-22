@@ -40,13 +40,23 @@ socket.on("start", ({ bidPlayer }) => {
   console.log("curr", currentPlayer);
   console.log("bid", bidPlayer);
 
+  categoriesList.style.display = "none";
+  categoryInput.style.display = "none";
+  categoryBtn.style.display = "none";
+  questionText.style.display = "none";
+  answer.style.display = "none";
+  answerSubmit.style.display = "none";
+
   if (currentPlayer.id === bidPlayer._id) {
     console.log("Everyone bidding for you");
     bidButton.innerHTML = "Cannot bid for yourself";
     bidButton.disabled = true;
+  } else {
+    console.log("You can bid");
+    bidButton.innerHTML = "Bid";
+    bidButton.disabled = false;
   }
 
-  // Start the global timer for everyone and only letting the bidplayer to send the stop-bid request
   // bid timer
   let time = 60;
   clearInterval(interval);
@@ -58,7 +68,7 @@ socket.on("start", ({ bidPlayer }) => {
         socket.emit("stop-bid");
       }
     } else {
-      timer.innerHTML = `Time left for bidding: ${time}`;
+      timer.innerHTML = `${time} seconds left for bidding`;
       time--;
     }
   }, 1000);
@@ -83,8 +93,11 @@ socket.on("bid", (data) => {
 
 socket.on("category", ({ categories, bidPlayer, max }) => {
   // console.log(currentPlayer.id, " ", max.player.id)
+  categoriesList.style.display = "inline";
+  categoriesList.innerHTML = "";
   categories.forEach((category) => {
-    if (category !== max.lastCategory.lastCategory)
+    console.log(category, max.lastCategory);
+    if (category != max.lastCategory.lastCategory)
       categoriesList.innerHTML += `<li>${category.name}</li>`;
   });
   if (currentPlayer.id === max.player.id) {
@@ -96,7 +109,7 @@ socket.on("category", ({ categories, bidPlayer, max }) => {
       if (chosenCategory === max.lastCategory.lastCategory) {
         alert("You cant choose that!");
       } else {
-        console.log("currrrr", currentPlayer);
+        // console.log("currrrr", currentPlayer);
         socket.emit("chosenCategory", { chosenCategory, currentPlayer });
         categoryInput.style.display = "none";
         categoryBtn.style.display = "none";
@@ -131,7 +144,16 @@ socket.on("question", ({ question, bidPlayer, chosenCategory }) => {
   console.log("bidplayer", bidPlayer);
 });
 
-socket.on("roundEnd", () => {
-  alert("New Round!!");
-  socket.emit("next-round");
+socket.on("updateBoard", (data) => {
+  const players = data.players;
+  document.getElementById("leader-board") = "";
+  players.forEach((player, index) => {
+    document.getElementById("leader-board").innerHTML += 
+    `${index+1} ${player.profilePhoto} ${player.name} ${player.score}`;
+  });
 });
+
+socket.on("roundEnd", () => {
+  alert("New Round Begins Now!");
+});
+
