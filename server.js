@@ -78,7 +78,7 @@ app.get("/game", requireAuth, (req, res) => {
 let bidPlayer;
 let idx = 0;
 
-let noOfPlayers
+let noOfPlayers;
 
 /////////////////////////////
 // Sockets //
@@ -89,11 +89,11 @@ let max = {
   player: null,
 };
 
-const startRound=async ()=>{
+const startRound = async () => {
   console.log(idx);
 
-  max.amount=0,
-  max.player=null;
+  max.amount = 0;
+  max.player = null;
 
   console.log("game started");
   const users = await User.find({ role: "user", eligible: true });
@@ -102,39 +102,60 @@ const startRound=async ()=>{
   io.sockets.emit("start", {
     bidPlayer,
   });
-}
+};
+
+const updateLeaderBoard = async () => {
+  const players = await User.find({ role: "user", eligible: true })
+    .sort({ score: -1 })
+    .select({
+      name: 1,
+      profilePhoto: 1,
+      score: 1,
+    });
+  socket.emit("updateBoard", { players });
+};
 
 io.on("connection", (socket) => {
   console.log("Made Socket Connection: ", socket.id);
   // socket.emit("login", { name: rug.generate(), bids: bids });
 
   socket.on("start-game", async () => {
-    noOfPlayers= await User.count({role:"user", eligible:true})
-    console.log("count", noOfPlayers)
+    noOfPlayers = await User.count({ role: "user", eligible: true });
+    console.log("count", noOfPlayers);
     startRound();
   });
 
   // Next round handling by the admin
-  // socket.on("next-round", async () => {
-  //   // Eliminate the players and update the leaderboard
-  //   // choose the next player to be bid on
+  socket.on("next-round", async () => {
+    roundNo++;
+    if (roundNo % 8 === 1) {
+      // Eliminate the players
+      lastPlayers = await User.find({ role: "user", eligible: true }).sort({
+        score: -1,
+      });
+      await User.findByIdAndUpdate(lastPlayers[0]._id, {
+        $set: {
+          eligible: false,
+        },
+      });
+      await User.findByIdAndUpdate(lastPlayers[1]._id, {
+        $set: {
+          eligible: false,
+        },
+      });
+    }
 
-  //   idx++;
-  //   if (idx === User.count({ role: "user", eligible: true })) {
-  //     idx = 0;
-  //   }
-  //   const users = await User.find({ role: "user", eligible: true });
-  //   bidPlayer = users[idx];
-  //   console.log("Player currently being bid on", bidPlayer);
-  //   io.sockets.emit("start", {
-  //     bidPlayer,
-  //   });
-  // });
+    // update the leaderboard
+    updateLeaderBoard();
+
+    // choose the next player to be bid on
+    startRound();
+  });
 
   socket.on("bid", async (content) => {
     // console.log("bid content", content);
-    console.log("amounts", max.amount, content.amount)
-    console.log("max greater", max.amount>content.amount)
+    console.log("amounts", max.amount, content.amount);
+    console.log("max greater", max.amount > content.amount);
     max =
       parseInt(max.amount) > parseInt(content.amount)
         ? max
@@ -167,37 +188,35 @@ io.on("connection", (socket) => {
     // console.log("last", user.lastCategory);
     try {
       const questions = await Category.find({
-        name: chosenCategory
-      }).populate('questions');
+        name: chosenCategory,
+      }).populate("questions");
 
-      console.log("length", questions, questions.length)
+      console.log("length", questions, questions.length);
 
-      let validQuestions=questions[0].questions.filter((question)=>!question.disabled)
-      console.log("valid", validQuestions)
-      if(validQuestions.length===0)
-      {
-        throw Error("No questions in this category")
-      }
-      else
-      {
-        question=validQuestions[0]
-        question.disabled=true
-    
+      let validQuestions = questions[0].questions.filter(
+        (question) => !question.disabled
+      );
+      console.log("valid", validQuestions);
+      if (validQuestions.length === 0) {
+        throw Error("No questions in this category");
+      } else {
+        question = validQuestions[0];
+        question.disabled = true;
+
         await Category.updateOne(
           { name: chosenCategory },
-          { $set: { "questions.$[element].disabled": true }},
+          { $set: { "questions.$[element].disabled": true } },
           {
-            arrayFilters:[{"element._id":question._id}]
+            arrayFilters: [{ "element._id": question._id }],
           }
         );
-    
+
         io.sockets.emit("question", { question, bidPlayer, chosenCategory });
       }
     } catch (error) {
-      console.log(error)
-      next(error)
+      console.log(error);
+      next(error);
     }
-
   });
 
   socket.on("answerGiven", async (correct) => {
@@ -225,11 +244,11 @@ io.on("connection", (socket) => {
       });
     }
     idx++;
-    console.log(noOfPlayers)
+    console.log(noOfPlayers);
     if (idx === noOfPlayers) {
       idx = 0;
     }
     io.sockets.emit("roundEnd");
-    startRound()
+    startRound();
   });
 });

@@ -40,23 +40,38 @@ socket.on("start", ({ bidPlayer }) => {
   console.log("curr", currentPlayer);
   console.log("bid", bidPlayer);
 
-  categoriesList.style.display="none"
-  categoryInput.style.display="none"
-  categoryBtn.style.display="none"
-  questionText.style.display="none"
-  answer.style.display="none"
-  answerSubmit.style.display="none"
+  categoriesList.style.display = "none";
+  categoryInput.style.display = "none";
+  categoryBtn.style.display = "none";
+  questionText.style.display = "none";
+  answer.style.display = "none";
+  answerSubmit.style.display = "none";
 
   if (currentPlayer.id === bidPlayer._id) {
     console.log("Everyone bidding for you");
     bidButton.innerHTML = "Cannot bid for yourself";
     bidButton.disabled = true;
-  }
-  else {
+  } else {
     console.log("You can bid");
     bidButton.innerHTML = "Bid";
     bidButton.disabled = false;
   }
+
+  // bid timer
+  let time = 60;
+  clearInterval(interval);
+  interval = setInterval(() => {
+    if (time < 0) {
+      clearInterval(interval);
+      // End the bidding process
+      if (currentPlayer.id === bidPlayer._id) {
+        socket.emit("stop-bid");
+      }
+    } else {
+      timer.innerHTML = `${time} seconds left for bidding`;
+      time--;
+    }
+  }, 1000);
 });
 
 socket.on("bid", (data) => {
@@ -74,30 +89,14 @@ socket.on("bid", (data) => {
     bidButton.disabled = false;
   }
   bidList.innerHTML += `<li>${content.player.name} $${content.amount}`;
-
-  // bid timer
-  let time = 10;
-  clearInterval(interval);
-  interval = setInterval(() => {
-    if (time <= 0) {
-      clearInterval(interval);
-      // End the bidding process
-      if (currentPlayer.id === bidPlayer._id) {
-        socket.emit("stop-bid");
-      }
-    } else {
-      timer.innerHTML = `Time left for bidding: ${time}`;
-      time--;
-    }
-  }, 1000);
 });
 
 socket.on("category", ({ categories, bidPlayer, max }) => {
   // console.log(currentPlayer.id, " ", max.player.id)
-  categoriesList.style.display="inline";
-  categoriesList.innerHTML="";
+  categoriesList.style.display = "inline";
+  categoriesList.innerHTML = "";
   categories.forEach((category) => {
-    console.log(category, max.lastCategory)
+    console.log(category, max.lastCategory);
     if (category != max.lastCategory.lastCategory)
       categoriesList.innerHTML += `<li>${category.name}</li>`;
   });
@@ -145,6 +144,16 @@ socket.on("question", ({ question, bidPlayer, chosenCategory }) => {
   console.log("bidplayer", bidPlayer);
 });
 
-socket.on("roundEnd", () => {
-  alert("New Round!!");
+socket.on("updateBoard", (data) => {
+  const players = data.players;
+  document.getElementById("leader-board") = "";
+  players.forEach((player, index) => {
+    document.getElementById("leader-board").innerHTML += 
+    `${index+1} ${player.profilePhoto} ${player.name} ${player.score}`;
+  });
 });
+
+socket.on("roundEnd", () => {
+  alert("New Round Begins Now!");
+});
+
