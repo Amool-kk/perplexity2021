@@ -124,6 +124,7 @@ io.on("connection", (socket) => {
   socket.on("start-game", async () => {
     noOfPlayers = await User.count({ role: "user", eligible: true });
     console.log("count", noOfPlayers);
+    updateLeaderBoard();
     startRound();
   });
 
