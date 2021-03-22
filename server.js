@@ -76,6 +76,8 @@ app.get("/game", requireAuth, (req, res) => {
 
 let bidPlayer;
 let idx = 0;
+// will track the round eliminate players after every 8 rounds
+let roundNo = 1;
 
 /////////////////////////////
 // Sockets //
@@ -103,15 +105,21 @@ io.on("connection", (socket) => {
 
   // Next round handling by the admin
   socket.on("next-round", async () => {
-    // Eliminate the players and update the leaderboard
-    // choose the next player to be bid on
+    const players = await Users.find({ role: "user", eligible: true });
+    let tempPlayers = players;
+    roundNo++;
+    if (roundNo % 8 === 1) {
+      // Eliminate the players
+      
+    }
+    // update the leaderboard
 
+    // choose the next player to be bid on
     idx++;
     if (idx === User.count({ role: "user", eligible: true })) {
       idx = 0;
     }
-    const users = await Users.find({ role: "user", eligible: true });
-    bidPlayer = users[idx];
+    bidPlayer = players[idx];
     console.log("Player currently being bid on", bidPlayer);
     io.sockets.emit("start", {
       bidPlayer,

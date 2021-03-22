@@ -45,6 +45,23 @@ socket.on("start", ({ bidPlayer }) => {
     bidButton.innerHTML = "Cannot bid for yourself";
     bidButton.disabled = true;
   }
+
+  // Start the global timer for everyone and only letting the bidplayer to send the stop-bid request
+  // bid timer
+  let time = 60;
+  clearInterval(interval);
+  interval = setInterval(() => {
+    if (time < 0) {
+      clearInterval(interval);
+      // End the bidding process
+      if (currentPlayer.id === bidPlayer._id) {
+        socket.emit("stop-bid");
+      }
+    } else {
+      timer.innerHTML = `Time left for bidding: ${time}`;
+      time--;
+    }
+  }, 1000);
 });
 
 socket.on("bid", (data) => {
@@ -62,22 +79,6 @@ socket.on("bid", (data) => {
     bidButton.disabled = false;
   }
   bidList.innerHTML += `<li>${content.player.name} $${content.amount}`;
-
-  // bid timer
-  let time = 10;
-  clearInterval(interval);
-  interval = setInterval(() => {
-    if (time <= 0) {
-      clearInterval(interval);
-      // End the bidding process
-      if (currentPlayer.id === bidPlayer._id) {
-        socket.emit("stop-bid");
-      }
-    } else {
-      timer.innerHTML = `Time left for bidding: ${time}`;
-      time--;
-    }
-  }, 1000);
 });
 
 socket.on("category", ({ categories, bidPlayer, max }) => {
@@ -132,4 +133,5 @@ socket.on("question", ({ question, bidPlayer, chosenCategory }) => {
 
 socket.on("roundEnd", () => {
   alert("New Round!!");
+  socket.emit("next-round");
 });
