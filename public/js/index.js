@@ -40,10 +40,22 @@ socket.on("start", ({ bidPlayer }) => {
   console.log("curr", currentPlayer);
   console.log("bid", bidPlayer);
 
+  categoriesList.style.display="none"
+  categoryInput.style.display="none"
+  categoryBtn.style.display="none"
+  questionText.style.display="none"
+  answer.style.display="none"
+  answerSubmit.style.display="none"
+
   if (currentPlayer.id === bidPlayer._id) {
     console.log("Everyone bidding for you");
     bidButton.innerHTML = "Cannot bid for yourself";
     bidButton.disabled = true;
+  }
+  else {
+    console.log("You can bid");
+    bidButton.innerHTML = "Bid";
+    bidButton.disabled = false;
   }
 });
 
@@ -82,8 +94,11 @@ socket.on("bid", (data) => {
 
 socket.on("category", ({ categories, bidPlayer, max }) => {
   // console.log(currentPlayer.id, " ", max.player.id)
+  categoriesList.style.display="inline";
+  categoriesList.innerHTML="";
   categories.forEach((category) => {
-    if (category !== max.lastCategory.lastCategory)
+    console.log(category, max.lastCategory)
+    if (category != max.lastCategory.lastCategory)
       categoriesList.innerHTML += `<li>${category.name}</li>`;
   });
   if (currentPlayer.id === max.player.id) {
@@ -95,7 +110,7 @@ socket.on("category", ({ categories, bidPlayer, max }) => {
       if (chosenCategory === max.lastCategory.lastCategory) {
         alert("You cant choose that!");
       } else {
-        console.log("currrrr", currentPlayer);
+        // console.log("currrrr", currentPlayer);
         socket.emit("chosenCategory", { chosenCategory, currentPlayer });
         categoryInput.style.display = "none";
         categoryBtn.style.display = "none";
