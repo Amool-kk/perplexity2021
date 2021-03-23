@@ -1,1 +1,173 @@
 /* CSS specifically for the game page */
+@font-face {
+    font-family: PerfectDarkBRK;
+    src: url("../fonts/pdark.ttf");
+}
+  
+@font-face {
+    font-family: Zekton;
+    src: url("../fonts/zekton\ rg.ttf");
+}
+
+html,body {
+    padding: 0;
+    margin:0;
+}
+
+body {
+    background-image: url('../img/bg1.jpg');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 100vh;
+}
+
+.navbar {
+    text-shadow:1px 1px 0px #888;
+    background-color:rgba(0,0,0,.2);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.navbar .navbar-brand .perplexity {
+    color: white;
+    font-family: PerfectDarkBRK;
+}
+
+.navbar .nav-link{
+    color: white !important;
+    font-family: Zekton;
+    font-weight: 600;
+}
+
+.navbar .avatar {
+    border-radius: 50%;
+    height: 30px;
+    width: 30px;
+}
+
+.custom-toggler .navbar-toggler-icon {
+    background-image: url(
+"data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255, 255, 255, 0.9)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+}
+
+.wrapper {
+    margin-top: 8%;
+}
+
+.bid-cont {
+    margin-top: 10%;
+}
+
+.main-cont, .bid-cont , .leaderboard{
+    text-shadow:1px 1px 0px #888;
+    background-color:rgba(52,60,65,.4);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+.main-cont h1, .bid-cont h2, .leaderboard h1{
+    color: white;
+    text-align: center;
+    font-size: 2.8rem !important;
+    font-family: PerfectDarkBRK;
+    letter-spacing: 0.14ch;
+}
+
+.main-cont #question{
+    color: white;
+    text-align: center;
+    font-size: 2.5rem !important;
+    font-family: PerfectDarkBRK;
+}
+
+.main-cont #answerSubmit, #bid-btn {
+    width: auto;
+}
+
+.main-cont input {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-family: Zekton;
+    font-weight: 700;
+    letter-spacing: 0.12ch;
+    outline: 0;
+    padding: 10px;
+    width: 300px;
+    box-sizing: border-box;
+    background-color: #e8eeef;
+    color: #8a97a0;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03) inset;
+}
+.main-cont input:focus {
+    background: #d2d9dd;
+    color: black;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+.main-cont .button {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-family: Zekton;
+    font-weight: 600;
+    letter-spacing: 0.12ch;
+    outline: 0;
+    padding: 10px;
+    width: 350px;
+    box-sizing: border-box;
+    background-color: #e8eeef !important;
+    color: #8a97a0 !important;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03) inset;
+    margin-bottom: 30px;
+}
+.main-cont .button:focus {
+    background: #d2d9dd;
+    color: black;
+}
+
+.dropdown-menu {
+    font-family: Zekton;
+}
+
+.main-cont .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+.main-cont .btn {
+    font-family: Zekton;
+    letter-spacing: 0.12ch;
+    font-weight: 600;
+}
+
+.main-cont #timer {
+    color: white;
+    font-family: Zekton;
+    font-weight: 600;
+}
+
+.bid-cont h2 {
+    font-size: 2.5rem !important;
+    letter-spacing: 0.16ch;
+}
+
+.bid-cont #bid-history li{
+    font-family: Zekton;
+    color: white;
+    font-size: 1.5rem;
+}

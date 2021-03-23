@@ -1,8 +1,8 @@
 .btn {
   display: inline-block;
   margin: 0 5%;
-  width: 10vw;
-  height: 4vw;
+  padding: 14px;
+  width: 8vw;
   text-align: center;
   border-radius: 8px;
   background: rgb(15, 15, 15);
