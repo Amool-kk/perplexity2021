@@ -17,9 +17,9 @@ html,body {
 body {
     background-image: url('../img/bg1.jpg');
     background-position: center center;
-    background-repeat: no-repeat;
+    /* background-repeat: no-repeat; */
     background-size: cover;
-    height: 100vh;
+    height: auto;
 }
 
 .navbar {
@@ -82,8 +82,8 @@ body {
 .main-cont #question{
     color: white;
     text-align: center;
-    font-size: 2.5rem !important;
-    font-family: PerfectDarkBRK;
+    font-size: 1.2rem !important;
+    font-family: Zetkon;
 }
 
 .main-cont #answerSubmit, #bid-btn {
@@ -153,12 +153,20 @@ a:hover {
     font-family: Zekton;
     letter-spacing: 0.12ch;
     font-weight: 600;
+    width: auto;
 }
 
 .main-cont #timer {
     color: white;
     font-family: Zekton;
     font-weight: 600;
+}
+
+#question {
+    font-family: Zetkon;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.12ch;
 }
 
 .bid-cont h2 {
@@ -170,4 +178,106 @@ a:hover {
     font-family: Zekton;
     color: white;
     font-size: 1.5rem;
+}
+
+#leaderboard {
+    font-family: Zetkon;
+    font-size: 1.2rem;
+}
+
+.list .item {
+    position: relative;
+    display: -webkit-box;
+    display: flex;
+    -webkit-box-align: center;
+            align-items: center;
+    color:#aafffe;
+    
+    height: auto;
+    border-radius: 3rem;
+    margin-bottom: 2rem;
+    background-color: rgba(3, 32, 44, 0.4);
+    backdrop-filter: blur(3px);
+    border: 1px solid #32c8c6;
+    -webkit-transform-origin: left;
+            transform-origin: left;
+    cursor: pointer;
+    -webkit-transition: -webkit-transform 200ms ease-in-out;
+    transition: -webkit-transform 200ms ease-in-out;
+    transition: transform 200ms ease-in-out;
+    transition: transform 200ms ease-in-out, -webkit-transform 200ms ease-in-out;
+    box-shadow: 0 0 4rem 0 rgba(0, 0, 0, 0.1), 0 1rem 2rem -1rem rgba(0, 0, 0, 0.3);
+}
+
+.list .item .pos {
+    font-weight: 900;
+    position: absolute;
+    left: -2rem;
+    text-align: center;
+    font-size: 0.9rem;
+    width: 1.5rem;
+    color: #fff;
+    font-weight: 500;
+    opacity: 0.6;
+    -webkit-transition: opacity 200ms ease-in-out;
+    transition: opacity 200ms ease-in-out;
+}
+
+.list .item .pic {
+    width: 40px;
+    height: 35px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.2), 0 1rem 1rem -0.5rem rgba(0, 0, 0, 0.3);
+    margin: 8px;
+}
+
+.list .item .name {
+    -webkit-box-flex: 2;
+            flex-grow: 2;
+    flex-basis: 10rem;
+    font-size: 0.9rem;
+    font-family: Zetkon;
+}
+
+.list .item .score {
+    margin-right: 1.5rem;
+    font-weight: bold;
+}
+
+.list .item .score:after {
+    margin-right: 1rem;
+}
+  
+
+@media only screen and (max-width: 767px) {
+    .leaderboard {
+        margin-top: 10%;
+    }
+}
+
+@media only screen and (max-width: 576px) {
+    .wrapper {
+        margin-top: 18%;
+    }
+    .main-cont h1,.bid-cont h2, .leaderboard h1 {
+        font-size: 1.5rem !important;
+    }
+
+    .main-cont input {
+        font-size: 10px;
+        padding: 10px;
+        width: 200px;
+    }
+
+    .main-cont #bid-btn, #category-btn, #answerSubmit{
+        font-size: 14px;
+        padding: 8px;
+        width: auto;
+    }
+
+    #timer, #bid-history li {
+        font-size: 1.1rem !important;
+    }
 }
