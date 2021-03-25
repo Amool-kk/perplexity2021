@@ -19,7 +19,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/auth/google/complete",
+      callbackURL: `${process.env.DOMAIN_NAME}/auth/google/complete`,
     },
     function (accessToken, refreshToken, profile, done) {
       User.findOrCreate(
@@ -41,7 +41,7 @@ passport.use(
     {
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/auth/github/complete",
+      callbackURL: `${process.env.DOMAIN_NAME}/auth/github/complete`,
     },
     function (accessToken, refreshToken, profile, done) {
       User.findOrCreate(
