@@ -133,6 +133,21 @@ socket.on("question", ({ question, bidPlayer, chosenCategory }) => {
     answer.style.display = "inline";
     answerSubmit.style.display = "inline";
 
+    let time = question.duration;
+    clearInterval(interval);
+    interval = setInterval(() => {
+      if (time < 0) {
+        clearInterval(interval);
+        // End the bidding process
+        if (currentPlayer.id === bidPlayer._id) {
+          socket.emit("answerGiven", false)
+        }
+      } else {
+        timer.innerHTML = `${time} seconds left for answering`;
+        time--;
+      }
+    }, 1000);
+
     questionText.innerHTML = `<p>Catgory Chosen is: ${chosenCategory}.</p> Q)${question.text}`;
 
     answerSubmit.addEventListener("click", () => {
