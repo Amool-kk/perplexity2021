@@ -5,7 +5,6 @@ const bidAmount = document.getElementById("bid-amt");
 const bidButton = document.getElementById("bid-btn");
 const bidList = document.getElementById("bid-history");
 const timer = document.getElementById("timer");
-const categoriesList = document.getElementById("categories");
 const categoryInput = document.getElementById("categoryInput");
 const categoryBtn = document.getElementById("category-btn");
 const questionText = document.getElementById("question");
@@ -15,7 +14,12 @@ const answerSubmit = document.getElementById("answerSubmit");
 const currentPlayer = {
   id: document.getElementById("player-id").innerHTML,
   name: document.getElementById("player-name").innerHTML,
+  eligible: document.getElementById("player-status").innerHTML,
 };
+
+if (currentPlayer.eligible === false) {
+  document.querySelector("body").style.display = "none";
+}
 
 console.log(document.getElementById("player-id").innerHTML);
 
@@ -26,21 +30,41 @@ socket.user = currentPlayer;
 // doesn't make sense
 console.log(socket.user);
 
+////////////////////////////
+// bidding for a player
+////////////////////////////
 bidButton.addEventListener("click", () => {
-  socket.emit("bid", {
-    player: currentPlayer,
-    amount: bidAmount.value,
-  });
+  if (canBid === false) {
+    alert("You can't bid now, bidding will resume in sometime");
+  } else {
+    if (bidAmount.value >= 0 && bidAmount.value <= 1000) {
+      socket.emit("bid", {
+        player: currentPlayer,
+        amount: bidAmount.value,
+      });
+    } else {
+      alert("Can't bid greater than 1000");
+    }
+  }
   bidAmount.value = "";
 });
+
+// variable to check if bidding is allowed or not
+let canBid = false;
+
+if (canBid == false) {
+  bidButton.disabled = true;
+}
 
 ////////////////////////////
 // Listen for events
 ////////////////////////////
 
+// Starting the game
 socket.on("start", ({ bidPlayer }) => {
-  console.log("curr", currentPlayer);
-  console.log("bid", bidPlayer);
+  console.log("currentPlayer", currentPlayer);
+  console.log("bidPlayer", bidPlayer);
+  canBid = true;
 
   categoriesList.style.display = "none";
   categoryInput.style.display = "none";
@@ -57,8 +81,11 @@ socket.on("start", ({ bidPlayer }) => {
     console.log("You can bid");
     bidButton.innerHTML = `<span class="first">Bid</span>`;
     bidButton.disabled = false;
+    // display the bid player to everyone
+    document.getElementById(
+      "bid-player"
+    ).innerHTML = `Everyone is bidding for ${bidPlayer.name}`;
   }
-
   // bid timer
   let time = 60;
   clearInterval(interval);
@@ -74,8 +101,11 @@ socket.on("start", ({ bidPlayer }) => {
       time--;
     }
   }, 1000);
+
+  bidList.innerHTML = "";
 });
 
+// Listening for bids
 socket.on("bid", (data) => {
   console.log(data);
   content = data.content;
@@ -94,22 +124,27 @@ socket.on("bid", (data) => {
 });
 
 socket.on("category", ({ categories, bidPlayer, max }) => {
-  // console.log(currentPlayer.id, " ", max.player.id)
-  categoriesList.style.display = "inline";
-  categoriesList.innerHTML = "";
+  canBid = false;
+
+  categoryInput.style.display = "inline";
   categories.forEach((category) => {
     console.log(category, max.lastCategory);
-    if (category != max.lastCategory.lastCategory)
-      categoriesList.innerHTML += `<li>${category.name}</li>`;
+    if (category != max.lastCategory.lastCategory) {
+      var opt = document.createElement("option");
+      opt.value = category.name;
+      opt.innerHTML = category.name;
+      categoryInput.appendChild(opt);
+    }
   });
+
   if (currentPlayer.id === max.player.id) {
-    categoryInput.style.display = "inline";
+    // categoryInput.style.display = "inline";
     categoryBtn.style.display = "inline";
     categoryBtn.addEventListener("click", () => {
       let chosenCategory = categoryInput.value;
       console.log("last", max.lastCategory.lastCategory);
       if (chosenCategory === max.lastCategory.lastCategory) {
-        alert("You cant choose that!");
+        alert("You can't choose that!");
       } else {
         // console.log("currrrr", currentPlayer);
         socket.emit("chosenCategory", { chosenCategory, currentPlayer });
@@ -124,51 +159,55 @@ socket.on("category", ({ categories, bidPlayer, max }) => {
   }
 });
 
+// Question and answer handling
 socket.on("question", ({ question, bidPlayer, chosenCategory }) => {
+  canBid = false;
+  questionText.style.display = "inline";
+  questionText.innerHTML = `<p>Catgory Chosen is: ${chosenCategory}.</p> Q)${question.text}`;
+
+  // timer based on the question duration
+  let time = question.duration;
+  clearInterval(interval);
+  interval = setInterval(() => {
+    if (time < 0) {
+      clearInterval(interval);
+      // End the bidding process
+      if (currentPlayer.id === bidPlayer._id) {
+        socket.emit("answerGiven", false);
+      }
+    } else {
+      timer.innerHTML = `${time} seconds left for answering`;
+      time--;
+    }
+  }, 1000);
+
   // bidPlayer can only give the answer
-  // Need to start a timer based on the question duration
   if (currentPlayer.id === bidPlayer._id) {
-    console.log("hi");
-    questionText.style.display = "inline";
     answer.style.display = "inline";
     answerSubmit.style.display = "inline";
 
-    let time = question.duration;
-    clearInterval(interval);
-    interval = setInterval(() => {
-      if (time < 0) {
-        clearInterval(interval);
-        // End the bidding process
-        if (currentPlayer.id === bidPlayer._id) {
-          socket.emit("answerGiven", false)
-        }
-      } else {
-        timer.innerHTML = `${time} seconds left for answering`;
-        time--;
-      }
-    }, 1000);
-
-    questionText.innerHTML = `<p>Catgory Chosen is: ${chosenCategory}.</p> Q)${question.text}`;
-
     answerSubmit.addEventListener("click", () => {
-      let answerGiven = answer.value;
+      let givenAnswer = answer.value;
       console.log(answerGiven);
       let correct = false;
-      if (answerGiven == question.answer) correct = true;
+      if (checkAnswer(givenAnswer, question.answer)) correct = true;
       socket.emit("answerGiven", correct);
     });
   }
   console.log("bidplayer", bidPlayer);
 });
 
+// Handling Elimination
+
 socket.on("updateBoard", (data) => {
   const players = data.players;
   document.getElementById("leader-board").innerHTML = "";
   players.forEach((player, index) => {
-    document.getElementById("leader-board").innerHTML += 
-    `<div class="item">
-      <div class="pos">${index+1}</div>
-      <div class="pic" style="background-image: url('${player.profilePhoto}')"></div>
+    document.getElementById("leader-board").innerHTML += `<div class="item">
+      <div class="pos">${index + 1}</div>
+      <div class="pic" style="background-image: url('${
+        player.profilePhoto
+      }')"></div>
       <div class="name">${player.name}</div>
       <div class="score">${player.score}</div> 
     </div>`;
@@ -176,6 +215,15 @@ socket.on("updateBoard", (data) => {
 });
 
 socket.on("roundEnd", () => {
+  // Isko thik kar dena
   alert("New Round Begins Now!");
 });
 
+function checkAnswer(givenAnswer, correctAnswer) {
+  if (
+    givenAnswer.split(" ").join("").toLowerCase() ===
+    correctAnswer.split(" ").join("").toLowerCase()
+  )
+    return 1;
+  return 0;
+}

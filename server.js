@@ -12,11 +12,10 @@ const {
   isAdmin,
   checkUser,
   requireAuth,
+  isAuthenticated,
 } = require("./middleware/authMiddleware");
 const User = require("./models/User");
 const Category = require("./models/Category");
-const Question = require("./models/Question");
-const { findOneAndUpdate } = require("./models/User");
 
 const app = express();
 const server = http.createServer(app);
@@ -62,7 +61,7 @@ mongoose
 let bids = [];
 
 app.get("*", checkUser);
-app.get("/", (req, res) => {
+app.get("/", isAuthenticated, (req, res) => {
   res.render("home");
 });
 

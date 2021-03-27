@@ -24,7 +24,7 @@ module.exports.checkUser = (req, res, next) => {
 // check if user is authenticated
 module.exports.isAuthenticated = (req, res, next) => {
   if (req.user) {
-    res.redirect("/");
+    res.redirect("/game");
   } else {
     next();
   }

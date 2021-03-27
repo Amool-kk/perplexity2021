@@ -17,6 +17,7 @@
 
 <body>
   <p id="player-id" hidden><%= user._id %></p>
+  <p id="player-status" hidden><%= user.eligible %></p>
   <header>
     <div class="container-fluid navbar-sec">
       <nav class="navbar fixed-top navbar-inverse navbar-expand-lg navbar-light">
@@ -47,6 +48,7 @@
           <div class="row">
             <div class="col-12 main-cont">
               <h1 class="mt-3">Let's Bid</h1>
+              <h6 class="mt-3" id="bid-player"></h6>
               <div class="container mt-3">
                 <input type="number" name="bid-value" id="bid-amt" placeholder="Amount" />
                 <p id="name"></p>
@@ -54,9 +56,12 @@
               </div>
               <br />
               <h4 id="timer">Time left:</h4>
-              <ul id="categories" style="color: white;" class="mt-2"></ul>
-              <input placeholder="Enter your category" style="display: none;" type="text" name="categoryInput"
-                id="categoryInput">
+              <!-- <ul id="categories" style="color: white;" class="mt-2"></ul> -->
+              <!-- <input placeholder="Enter your category" style="display: none;" type="text" name="categoryInput"
+                id="categoryInput"> -->
+                <select name="category" id="categoryInput" style="display: none;">
+                  <option selected>Choose Category</option>
+                </select>
               <!-- <div class="dropdown show mb-5 categories" style="display: none;">
                 <a class="button btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
