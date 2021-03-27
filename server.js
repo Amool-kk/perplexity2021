@@ -145,6 +145,11 @@ io.on("connection", (socket) => {
           eligible: false,
         },
       });
+      
+      // eleminate the players on front-end
+      socket.emit("eliminate", {
+        ineligiblePlayers: [lastPlayers[0], lastPlayers[1]],
+      });
     }
 
     // update the leaderboard

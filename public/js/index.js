@@ -123,6 +123,8 @@ socket.on("bid", (data) => {
   bidList.innerHTML += `<li>${content.player.name} $${content.amount}`;
 });
 
+
+// Choosing the Question category
 socket.on("category", ({ categories, bidPlayer, max }) => {
   canBid = false;
 
@@ -198,6 +200,16 @@ socket.on("question", ({ question, bidPlayer, chosenCategory }) => {
 });
 
 // Handling Elimination
+socket.on("eliminate", ({ ineligiblePlayers }) => {
+  if (
+    currentPlayer.id === ineligiblePlayers[0]._id ||
+    currentPlayer.id === ineligiblePlayers[1]._id
+  ) {
+    currentPlayer.eligible = false;
+    document.querySelector("body").style.display = "none";
+    alert("You have been eliminated from this game");
+  }
+});
 
 socket.on("updateBoard", (data) => {
   const players = data.players;
