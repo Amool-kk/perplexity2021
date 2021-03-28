@@ -180,6 +180,7 @@ io.on("connection", (socket) => {
 
   socket.on("stop-bid", async () => {
     // Category Selection
+    // Send only those categories which have available questions
     const categories = await Category.find({}).select("name -_id");
     console.log(categories);
     io.sockets.emit("category", { categories, bidPlayer, max });

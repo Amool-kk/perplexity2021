@@ -10,6 +10,9 @@ const categoryBtn = document.getElementById("category-btn");
 const questionText = document.getElementById("question");
 const answer = document.getElementById("answer");
 const answerSubmit = document.getElementById("answerSubmit");
+const toastBody = document.querySelector(".toast-body");
+
+$(".toast").toast();
 
 const currentPlayer = {
   id: document.getElementById("player-id").innerHTML,
@@ -38,7 +41,8 @@ let canBid = false;
 ////////////////////////////
 bidButton.addEventListener("click", () => {
   if (canBid === false) {
-    alert("You can't bid now, bidding will resume in sometime");
+    toastBody.innerHTML = "You can't bid now, bidding will start in sometime";
+    $(".toast").toast("show");
   } else {
     if (bidAmount.value >= 0 && bidAmount.value <= 1000) {
       socket.emit("bid", {
@@ -46,7 +50,8 @@ bidButton.addEventListener("click", () => {
         amount: bidAmount.value,
       });
     } else {
-      alert("Can't bid greater than 1000");
+      toastBody.innerHTML = "Invalid bid, try again";
+      $(".toast").toast("show");
     }
   }
   bidAmount.value = "";
@@ -217,8 +222,8 @@ socket.on("updateBoard", (data) => {
 });
 
 socket.on("roundEnd", () => {
-  // Isko thik kar dena
-  alert("New Round Begins Now!");
+  toastBody.innerHTML = "New Round Begins Now!";
+  $(".toast").toast("show");
 });
 
 function checkAnswer(givenAnswer, correctAnswer) {
