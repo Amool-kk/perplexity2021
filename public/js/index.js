@@ -20,6 +20,10 @@ const currentPlayer = {
   eligible: document.getElementById("player-status").innerHTML === "true",
 };
 
+socket.on("connect", function (data) {
+  socket.emit("storePlayerInfo", { playerId: currentPlayer.id });
+});
+
 if (currentPlayer.eligible === false) {
   document.querySelector("body").style.display = "none";
 }
@@ -28,7 +32,6 @@ console.log(document.getElementById("player-id").innerHTML);
 
 let bidPlayer;
 let interval;
-socket.user = currentPlayer;
 
 // doesn't make sense
 console.log(socket.user);

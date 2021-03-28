@@ -116,15 +116,36 @@ const updateLeaderBoard = async () => {
   io.sockets.emit("updateBoard", { players });
 };
 
+const liveUsers = [];
+
 io.on("connection", (socket) => {
   console.log("Made Socket Connection: ", socket.id);
-  // socket.emit("login", { name: rug.generate(), bids: bids });
+
+  socket.on("storePlayerInfo", ({ playerId }) => {
+    const playerInfo = {
+      userId: playerId,
+      socketId: socket.id,
+    };
+    liveUsers.push(playerInfo);
+  });
+
+  socket.on("disconnect", () => {
+    for (var i = 0; i < liveUsers.length; ++i) {
+      var c = liveUsers[i];
+
+      if (c.socketId == socket.id) {
+        liveUsers.splice(i, 1);
+        break;
+      }
+    }
+  });
 
   socket.on("start-game", async () => {
-    noOfPlayers = await User.count({ role: "user", eligible: true });
-    console.log("count", noOfPlayers);
-    updateLeaderBoard();
-    startRound();
+    // noOfPlayers = await User.count({ role: "user", eligible: true });
+    // console.log("count", noOfPlayers);
+    // updateLeaderBoard();
+    // startRound();
+    console.log(liveUsers);
   });
 
   // Next round handling by the admin
@@ -145,7 +166,7 @@ io.on("connection", (socket) => {
           eligible: false,
         },
       });
-      
+
       // eleminate the players on front-end
       socket.emit("eliminate", {
         ineligiblePlayers: [lastPlayers[0], lastPlayers[1]],
