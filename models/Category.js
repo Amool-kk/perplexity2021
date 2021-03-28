@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const {questionSchema} =  require("../models/Question");
+const { questionSchema } = require("./Question");
 
 const categorySchema = new mongoose.Schema({
   name: {
