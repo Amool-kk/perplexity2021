@@ -121,20 +121,18 @@ socket.on("bid", (data) => {
 // Choosing the Question category
 socket.on("category", ({ categories, bidPlayer, max }) => {
   canBid = false;
-
-  categoryInput.style.display = "inline";
-  categories.forEach((category) => {
-    console.log(category, max.lastCategory);
-    if (category != max.lastCategory.lastCategory) {
-      var opt = document.createElement("option");
-      opt.value = category.name;
-      opt.innerHTML = category.name;
-      categoryInput.appendChild(opt);
-    }
-  });
-
+  categoryInput.style.display = "none";
   if (currentPlayer.id === max.player.id) {
-    // categoryInput.style.display = "inline";
+    categoryInput.style.display = "inline";
+    categories.forEach((category) => {
+      console.log(category, max.lastCategory);
+      if (category != max.lastCategory.lastCategory) {
+        var opt = document.createElement("option");
+        opt.value = category.name;
+        opt.innerHTML = category.name;
+        categoryInput.appendChild(opt);
+      }
+    });
     categoryBtn.style.display = "inline";
     categoryBtn.addEventListener("click", () => {
       let chosenCategory = categoryInput.value;
@@ -142,13 +140,11 @@ socket.on("category", ({ categories, bidPlayer, max }) => {
       if (chosenCategory === max.lastCategory.lastCategory) {
         alert("You can't choose that!");
       } else {
-        // console.log("currrrr", currentPlayer);
         socket.emit("chosenCategory", { chosenCategory, currentPlayer });
         categoryInput.style.display = "none";
         categoryBtn.style.display = "none";
       }
     });
-    // console.log("choose a category")
   } else {
     timer.innerHTML = `${max.player.name} is choosing a category`;
     console.log(max.player.name, " is choosing a category");
