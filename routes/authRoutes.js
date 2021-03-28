@@ -43,7 +43,6 @@ router.get("/login", (req, res) => {
 });
 
 router.get("/logout", requireAuth, (req, res) => {
-  console.log(req.session);
   req.session = null;
   req.logout();
   res.redirect("/");

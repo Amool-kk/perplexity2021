@@ -1,12 +1,8 @@
-require("dotenv").config();
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-
 module.exports.requireAuth = (req, res, next) => {
   if (req.user) {
     next();
   } else {
-    res.redirect("/login");
+    res.redirect("/");
   }
 };
 

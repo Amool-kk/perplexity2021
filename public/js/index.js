@@ -14,7 +14,7 @@ const answerSubmit = document.getElementById("answerSubmit");
 const currentPlayer = {
   id: document.getElementById("player-id").innerHTML,
   name: document.getElementById("player-name").innerHTML,
-  eligible: document.getElementById("player-status").innerHTML,
+  eligible: document.getElementById("player-status").innerHTML === "true",
 };
 
 if (currentPlayer.eligible === false) {
@@ -29,6 +29,9 @@ socket.user = currentPlayer;
 
 // doesn't make sense
 console.log(socket.user);
+
+// variable to check if bidding is allowed or not
+let canBid = false;
 
 ////////////////////////////
 // bidding for a player
@@ -49,13 +52,6 @@ bidButton.addEventListener("click", () => {
   bidAmount.value = "";
 });
 
-// variable to check if bidding is allowed or not
-let canBid = false;
-
-if (canBid == false) {
-  bidButton.disabled = true;
-}
-
 ////////////////////////////
 // Listen for events
 ////////////////////////////
@@ -66,7 +62,6 @@ socket.on("start", ({ bidPlayer }) => {
   console.log("bidPlayer", bidPlayer);
   canBid = true;
 
-  categoriesList.style.display = "none";
   categoryInput.style.display = "none";
   categoryBtn.style.display = "none";
   questionText.style.display = "none";
@@ -122,7 +117,6 @@ socket.on("bid", (data) => {
   }
   bidList.innerHTML += `<li>${content.player.name} $${content.amount}`;
 });
-
 
 // Choosing the Question category
 socket.on("category", ({ categories, bidPlayer, max }) => {
@@ -190,7 +184,7 @@ socket.on("question", ({ question, bidPlayer, chosenCategory }) => {
 
     answerSubmit.addEventListener("click", () => {
       let givenAnswer = answer.value;
-      console.log(answerGiven);
+      console.log(givenAnswer);
       let correct = false;
       if (checkAnswer(givenAnswer, question.answer)) correct = true;
       socket.emit("answerGiven", correct);
