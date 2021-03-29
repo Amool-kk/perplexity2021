@@ -33,9 +33,6 @@ console.log(document.getElementById("player-id").innerHTML);
 let bidPlayer;
 let interval;
 
-// doesn't make sense
-console.log(socket.user);
-
 // variable to check if bidding is allowed or not
 let canBid = false;
 
@@ -47,15 +44,19 @@ bidButton.addEventListener("click", () => {
     toastBody.innerHTML = "You can't bid now, bidding will start in sometime";
     $(".toast").toast("show");
   } else {
-    if (bidAmount.value >= 0 && bidAmount.value <= 1000) {
-      socket.emit("bid", {
-        player: currentPlayer,
-        amount: bidAmount.value,
-      });
-    } else {
-      toastBody.innerHTML = "Invalid bid, try again";
-      $(".toast").toast("show");
-    }
+    socket.emit("bid", {
+      player: currentPlayer,
+      amount: parseInt(bidAmount.value),
+    });
+    // if (bidAmount.value >= 0 && bidAmount.value <= 1000) {
+    //   socket.emit("bid", {
+    //     player: currentPlayer,
+    //     amount: bidAmount.value,
+    //   });
+    // } else {
+    //   toastBody.innerHTML = "Invalid bid, try again";
+    //   $(".toast").toast("show");
+    // }
   }
   bidAmount.value = "";
 });
@@ -64,8 +65,8 @@ bidButton.addEventListener("click", () => {
 // Listen for events
 ////////////////////////////
 
-// Starting the game
-socket.on("start", ({ bidPlayer }) => {
+// Starting / restarting the game
+socket.on("start", ({ bidPlayer, endTime, bidHistory }) => {
   console.log("currentPlayer", currentPlayer);
   console.log("bidPlayer", bidPlayer);
   canBid = true;
@@ -90,7 +91,7 @@ socket.on("start", ({ bidPlayer }) => {
     ).innerHTML = `Everyone is bidding for ${bidPlayer.name}`;
   }
   // bid timer
-  let time = 60;
+  let time = Math.floor((endTime - Date.now()) / 1000);
   clearInterval(interval);
   interval = setInterval(() => {
     if (time < 0) {
@@ -105,26 +106,47 @@ socket.on("start", ({ bidPlayer }) => {
     }
   }, 1000);
 
+  // Handling Bid History in case of refreshes
   bidList.innerHTML = "";
+  if (bidHistory) {
+    bidHistory.forEach(({ name, amount }) => {
+      bidList.innerHTML += `<li>${name} $${amount}`;
+    });
+  }
 });
 
 // Listening for bids
-socket.on("bid", (data) => {
-  console.log(data);
-  content = data.content;
-  bidPlayer = data.bidPlayer;
-  console.log("curplayer", currentPlayer);
-  console.log("bid made by", content);
-  if (
-    content.player.id === currentPlayer.id ||
-    currentPlayer.id === bidPlayer._id
-  ) {
-    bidButton.disabled = true;
+
+socket.on("bid", ({ player, amount, errors }) => {
+  if (errors) {
+    toastBody.innerHTML = errors;
+    $(".toast").toast("show");
   } else {
-    bidButton.disabled = false;
+    if (player.id === currentPlayer.id) bidButton.disabled = true;
+    else bidButton.disabled = false;
+    bidList.innerHTML += `<li>${player.name} $${amount}`;
   }
-  bidList.innerHTML += `<li>${content.player.name} $${content.amount}`;
 });
+
+// socket.on("bid", (data) => {
+//   console.log(data);
+//   content = data.content;
+//   bidPlayer = data.bidPlayer;
+//   console.log("curplayer", currentPlayer);
+//   console.log("bid made by", content);
+//   if (
+//     content.player.id === currentPlayer.id ||
+//     currentPlayer.id === bidPlayer._id
+//   ) {
+//     bidButton.disabled = true;
+//   } else {
+//     bidButton.disabled = false;
+//   }
+//   bidList.innerHTML += `<li>${content.player.name} $${content.amount}`;
+//   if (content.amount > maxBidValue) {
+//     maxBidValue = content.amount;
+//   }
+// });
 
 // Choosing the Question category
 socket.on("category", ({ categories, bidPlayer, max }) => {
@@ -227,6 +249,7 @@ socket.on("updateBoard", (data) => {
 socket.on("roundEnd", () => {
   toastBody.innerHTML = "New Round Begins Now!";
   $(".toast").toast("show");
+  maxBidValue = 0;
 });
 
 function checkAnswer(givenAnswer, correctAnswer) {
