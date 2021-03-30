@@ -94,12 +94,14 @@ let max = {
 let currentBidSession = null;
 const liveUsers = [];
 const validCategories = [];
+let interval;
 
 /////////////////////////////
 // Utility Functions
 /////////////////////////////
 
 function handleTimer(time, callback) {
+  clearInterval(interval);
   interval = setInterval(() => {
     if (time < 0) {
       clearInterval(interval);
@@ -134,15 +136,23 @@ const showCategories = async () => {
     endTime: Date.parse(currentBidSession.categoryTimeEnd),
   });
 
-  handleTimer(20, function () {
-    const foundMaxUser = liveUsers.find(
-      (user) => user.userId == currentBidSession.maxPlayer
-    );
-    const foundBidPlayer = liveUsers.find(
-      (user) => user.userId == currentBidSession.bidPlayer
-    );
-    if (!(foundMaxUser && foundBidPlayer)) startRound();
-    else sendQuestion();
+  handleTimer(20, async function () {
+    if (!currentBidSession.chosenCategory) {
+      const foundMaxUser = liveUsers.find(
+        (user) => user.userId == currentBidSession.maxPlayer
+      );
+      const foundBidPlayer = liveUsers.find(
+        (user) => user.userId == currentBidSession.bidPlayer
+      );
+      if (!(foundMaxUser && foundBidPlayer)) startRound();
+      if (foundMaxUser) {
+        await User.findByIdAndUpdate(currentBidSession.maxPlayer, {
+          $inc: {
+            score: -max.amount,
+          },
+        });
+      }
+    }
   });
 };
 
