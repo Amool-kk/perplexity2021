@@ -7,6 +7,10 @@ const categorySchema = new mongoose.Schema({
     unique: true,
   },
   questions: [questionSchema],
+  disabledCount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const Category = mongoose.model("category", categorySchema);

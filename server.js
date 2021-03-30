@@ -75,16 +75,16 @@ app.get("/game", requireAuth, (req, res) => {
   res.render("game");
 });
 
+////////////////////////////
+// Game logic starts here //
+////////////////////////////
+
 let bidPlayer;
 let idx = 0;
 // will track the round eliminate players after every 8 rounds
 let roundNo = 1;
 let interval;
 let noOfPlayers;
-
-/////////////////////////////
-// Sockets //
-/////////////////////////////
 
 let max = {
   amount: 0,
@@ -94,15 +94,45 @@ let max = {
 let currentBidSession = null;
 const liveUsers = [];
 
+/////////////////////////////
+// Utility Functions
+/////////////////////////////
+
 function handleTimer(time, callback) {
   interval = setInterval(() => {
     if (time < 0) {
       clearInterval(interval);
       callback();
-      // End the bidding process
-    } else time--;
+    } else {
+      time--;
+    }
   }, 1000);
 }
+
+const showCategories = async () => {
+  // Send all categories which have available questions
+  const validCategories = [];
+  const categories = await Category.find({});
+  categories.forEach((category) => {
+    if (category.questions.length - category.disabledCount > 0) {
+      validCategories.push(category.name);
+    }
+  });
+  // also get the lastChosenCategory of maxPlayer
+  
+  io.sockets.emit("category", { categories: validCategories, bidPlayer, max });
+
+  handleTimer(20, function () {
+    const foundMaxUser = liveUsers.find(
+      (user) => user.userId === currentBidSession.maxPlayer
+    );
+    const foundBidPlayer = liveUsers.find(
+      (user) => user.userId === currentBidSession.bidPlayer
+    );
+    if (!(foundMaxUser && foundBidPlayer)) startRound();
+    else sendQuestion();
+  });
+};
 
 const startRound = async () => {
   console.log(idx);
@@ -120,27 +150,30 @@ const startRound = async () => {
     bidHistory: [],
   });
 
-  liveUsers.forEach((user) => {
-    currentBidSession.activePlayers.push(user.userId);
-  });
+  // liveUsers.forEach((user) => {
+  //   currentBidSession.activePlayers.push(user.userId);
+  // });
   currentBidSession.timeEnd = Date.now() + 60 * 1000;
   currentBidSession.save();
 
   // Adding a timer in the backend for referencing
   handleTimer(60, function () {
-    const found = liveUsers.find((user) => {
-      user.userId === currentBidSession.maxPlayer._id;
-    });
-    if (!found) {
-      // maxPlayer is not present at the end of 60 seconds
-    }
+    const foundMaxUser = liveUsers.find(
+      (user) => user.userId === currentBidSession.maxPlayer
+    );
+    const foundBidPlayer = liveUsers.find(
+      (user) => user.userId === currentBidSession.bidPlayer
+    );
+    if (!(foundMaxUser && foundBidPlayer)) startRound();
+    else showCategories();
   });
 
   console.log("game started");
 
   console.log("Player currently being bid on", bidPlayer);
   io.sockets.emit("start", {
-    bidPlayer: currentBidSession.bidPlayer,
+    // bidPlayer: currentBidSession.bidPlayer,
+    bidPlayer,
     endTime: Date.parse(currentBidSession.timeEnd),
   });
 };
@@ -155,6 +188,10 @@ const updateLeaderBoard = async () => {
     });
   io.sockets.emit("updateBoard", { players });
 };
+
+/////////////////////////////
+// Sockets //
+/////////////////////////////
 
 io.on("connection", (socket) => {
   console.log("Made Socket Connection: ", socket.id);
@@ -174,9 +211,11 @@ io.on("connection", (socket) => {
       // bid session is present and time left
       socket.emit("start", {
         endTime: Date.parse(currentBidSession.timeEnd),
-        bidPlayer: currentBidSession.bidPlayer,
+        // bidPlayer: currentBidSession.bidPlayer,
+        bidPlayer,
         bidHistory: currentBidSession.bidHistory,
       });
+      updateLeaderBoard();
     }
   });
 
@@ -242,7 +281,7 @@ io.on("connection", (socket) => {
       max.amount = amount;
       max.player = player;
       currentBidSession.maxBid = amount;
-      currentBidSession.maxPlayer = player;
+      currentBidSession.maxPlayer = player.id;
       currentBidSession.bidHistory.push({
         name: player.name,
         amount: amount,
@@ -251,29 +290,15 @@ io.on("connection", (socket) => {
       bids.push({ player, amount });
       io.sockets.emit("bid", { player, amount });
     }
-    // console.log("amounts", max.amount, content.amount);
-    // console.log("max greater", max.amount > content.amount);
-
-    // max =
-    //   parseInt(max.amount) > parseInt(content.amount)
-    //     ? max
-    //     : {
-    //         amount: content.amount,
-    //         player: content.player,
-    //         lastCategory: await User.findById(content.player.id).select(
-    //           "lastCategory -_id"
-    //         ),
-    //       };
-    // console.log("max", max.lastCategory);
   });
 
-  socket.on("stop-bid", async () => {
-    // Category Selection
-    // Send only those categories which have available questions
-    const categories = await Category.find({}).select("name -_id");
-    console.log(categories);
-    io.sockets.emit("category", { categories, bidPlayer, max });
-  });
+  // socket.on("stop-bid", async () => {
+  //   // Category Selection
+  //   // Send only those categories which have available questions
+  //   const categories = await Category.find({}).select("name -_id");
+  //   console.log(categories);
+  //   io.sockets.emit("category", { categories, bidPlayer, max });
+  // });
 
   let question;
 

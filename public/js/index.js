@@ -97,9 +97,9 @@ socket.on("start", ({ bidPlayer, endTime, bidHistory }) => {
     if (time < 0) {
       clearInterval(interval);
       // End the bidding process
-      if (currentPlayer.id === bidPlayer._id) {
-        socket.emit("stop-bid");
-      }
+      // if (currentPlayer.id === bidPlayer._id) {
+      //   socket.emit("stop-bid");
+      // }
     } else {
       timer.innerHTML = `${time} seconds left for bidding`;
       time--;
@@ -115,8 +115,9 @@ socket.on("start", ({ bidPlayer, endTime, bidHistory }) => {
   }
 });
 
+////////////////////////////
 // Listening for bids
-
+////////////////////////////
 socket.on("bid", ({ player, amount, errors }) => {
   if (errors) {
     toastBody.innerHTML = errors;
@@ -148,7 +149,11 @@ socket.on("bid", ({ player, amount, errors }) => {
 //   }
 // });
 
-// Choosing the Question category
+
+//////////////////////////////////
+// Choosing Question category
+//////////////////////////////////
+
 socket.on("category", ({ categories, bidPlayer, max }) => {
   canBid = false;
   categoryInput.style.display = "none";

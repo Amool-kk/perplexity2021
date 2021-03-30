@@ -1,12 +1,11 @@
 const mongoose = require("mongoose");
-const { userSchema } = require("./User");
 
 const bidSchema = mongoose.Schema({
-  activePlayers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-  bidPlayer: userSchema,
+  // activePlayers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  bidPlayer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   timeEnd: Date,
   maxBid: Number,
-  maxPlayer: userSchema,
+  maxPlayer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   bidHistory: [
     {
       name: String,
