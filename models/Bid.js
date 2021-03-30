@@ -3,7 +3,9 @@ const mongoose = require("mongoose");
 const bidSchema = mongoose.Schema({
   // activePlayers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   bidPlayer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  timeEnd: Date,
+  bidTimeEnd: Date,
+  catetoryTimeEnd: Date,
+  answerTimeLeft: Date,
   maxBid: Number,
   maxPlayer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   bidHistory: [
@@ -12,6 +14,10 @@ const bidSchema = mongoose.Schema({
       amount: Number,
     },
   ],
+  chosenCategory: {
+    type: String,
+    default: "",
+  },
 });
 
 const Bid = mongoose.model("bid", bidSchema);

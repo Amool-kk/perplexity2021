@@ -93,6 +93,7 @@ let max = {
 
 let currentBidSession = null;
 const liveUsers = [];
+const validCategories = [];
 
 /////////////////////////////
 // Utility Functions
@@ -111,23 +112,34 @@ function handleTimer(time, callback) {
 
 const showCategories = async () => {
   // Send all categories which have available questions
-  const validCategories = [];
   const categories = await Category.find({});
+  const lastChosenCategory = await User.findById(currentBidSession.maxPlayer)
+    .lastCategory;
+
   categories.forEach((category) => {
-    if (category.questions.length - category.disabledCount > 0) {
+    if (
+      category.questions.length - category.disabledCount > 0 &&
+      category.name !== lastChosenCategory
+    ) {
       validCategories.push(category.name);
     }
   });
-  // also get the lastChosenCategory of maxPlayer
-  
-  io.sockets.emit("category", { categories: validCategories, bidPlayer, max });
+
+  currentBidSession.categoryTimeEnd = Date.now() + 20 * 1000;
+  currentBidSession.save();
+
+  io.sockets.emit("category", {
+    categories: validCategories,
+    max,
+    endTime: Date.parse(currentBidSession.categoryTimeEnd),
+  });
 
   handleTimer(20, function () {
     const foundMaxUser = liveUsers.find(
-      (user) => user.userId === currentBidSession.maxPlayer
+      (user) => user.userId == currentBidSession.maxPlayer
     );
     const foundBidPlayer = liveUsers.find(
-      (user) => user.userId === currentBidSession.bidPlayer
+      (user) => user.userId == currentBidSession.bidPlayer
     );
     if (!(foundMaxUser && foundBidPlayer)) startRound();
     else sendQuestion();
@@ -153,16 +165,16 @@ const startRound = async () => {
   // liveUsers.forEach((user) => {
   //   currentBidSession.activePlayers.push(user.userId);
   // });
-  currentBidSession.timeEnd = Date.now() + 60 * 1000;
+  currentBidSession.bidTimeEnd = Date.now() + 60 * 1000;
   currentBidSession.save();
 
   // Adding a timer in the backend for referencing
   handleTimer(60, function () {
     const foundMaxUser = liveUsers.find(
-      (user) => user.userId === currentBidSession.maxPlayer
+      (user) => user.userId == currentBidSession.maxPlayer
     );
     const foundBidPlayer = liveUsers.find(
-      (user) => user.userId === currentBidSession.bidPlayer
+      (user) => user.userId == currentBidSession.bidPlayer
     );
     if (!(foundMaxUser && foundBidPlayer)) startRound();
     else showCategories();
@@ -174,7 +186,7 @@ const startRound = async () => {
   io.sockets.emit("start", {
     // bidPlayer: currentBidSession.bidPlayer,
     bidPlayer,
-    endTime: Date.parse(currentBidSession.timeEnd),
+    endTime: Date.parse(currentBidSession.bidTimeEnd),
   });
 };
 
@@ -206,11 +218,11 @@ io.on("connection", (socket) => {
     // Handling Players who are joining in between
     if (
       currentBidSession &&
-      Date.parse(currentBidSession.timeEnd) - Date.now() > 0
+      Date.parse(currentBidSession.bidTimeEnd) - Date.now() > 0
     ) {
       // bid session is present and time left
       socket.emit("start", {
-        endTime: Date.parse(currentBidSession.timeEnd),
+        endTime: Date.parse(currentBidSession.bidTimeEnd),
         // bidPlayer: currentBidSession.bidPlayer,
         bidPlayer,
         bidHistory: currentBidSession.bidHistory,

@@ -149,39 +149,46 @@ socket.on("bid", ({ player, amount, errors }) => {
 //   }
 // });
 
-
 //////////////////////////////////
 // Choosing Question category
 //////////////////////////////////
 
-socket.on("category", ({ categories, bidPlayer, max }) => {
+socket.on("category", ({ categories, max, endTime }) => {
   canBid = false;
   categoryInput.style.display = "none";
+
+  // category timer
+  let time = Math.floor((endTime - Date.now()) / 1000);
+  clearInterval(interval);
+  interval = setInterval(() => {
+    if (time < 0) clearInterval(interval);
+    else {
+      timer.innerHTML = `${time} seconds left for selecting Category`;
+      time--;
+    }
+  }, 1000);
+
   if (currentPlayer.id === max.player.id) {
     categoryInput.style.display = "inline";
     categories.forEach((category) => {
-      console.log(category, max.lastCategory);
-      if (category != max.lastCategory.lastCategory) {
-        var opt = document.createElement("option");
-        opt.value = category.name;
-        opt.innerHTML = category.name;
-        categoryInput.appendChild(opt);
-      }
+      let opt = document.createElement("option");
+      opt.value = category;
+      opt.innerHTML = category;
+      categoryInput.appendChild(opt);
     });
+
     categoryBtn.style.display = "inline";
+
     categoryBtn.addEventListener("click", () => {
       let chosenCategory = categoryInput.value;
-      console.log("last", max.lastCategory.lastCategory);
-      if (chosenCategory === max.lastCategory.lastCategory) {
-        alert("You can't choose that!");
-      } else {
-        socket.emit("chosenCategory", { chosenCategory, currentPlayer });
-        categoryInput.style.display = "none";
-        categoryBtn.style.display = "none";
-      }
+      socket.emit("chosenCategory", { chosenCategory, currentPlayer });
+      categoryInput.style.display = "none";
+      categoryBtn.style.display = "none";
     });
   } else {
-    timer.innerHTML = `${max.player.name} is choosing a category`;
+    document.getElementById(
+      "data"
+    ).innerHTML = `${max.player.name} is choosing a category`;
     console.log(max.player.name, " is choosing a category");
   }
 });
