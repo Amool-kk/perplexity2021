@@ -7,6 +7,6 @@ document.getElementById("start-game").addEventListener("click", () => {
 });
 
 socket.on("roundEnd", () => {
-  alert("New Round is going to start");
+  // alert("New Round is going to start");
   socket.emit("next-round");
 });

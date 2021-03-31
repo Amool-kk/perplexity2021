@@ -42,14 +42,14 @@ passport.use(
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL: `${process.env.DOMAIN_NAME}/auth/github/complete`,
-      scope:['profile']
+      scope: ["profile"],
     },
     function (accessToken, refreshToken, profile, done) {
-      console.log("profile, ",profile)
+      console.log("profile, ", profile);
       User.findOrCreate(
         {
           oauthID: profile.id,
-          name: profile.displayName||profile.username,
+          name: profile.displayName || profile.username,
           profilePhoto: profile.photos[0].value,
         },
         function (err, user) {

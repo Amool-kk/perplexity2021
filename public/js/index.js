@@ -76,7 +76,7 @@ socket.on("start", ({ bidPlayer, endTime, bidHistory }) => {
   questionText.style.display = "none";
   answer.style.display = "none";
   answerSubmit.style.display = "none";
-  data.style.display="none"
+  data.style.display = "none";
 
   if (currentPlayer.id === bidPlayer._id) {
     console.log("Everyone bidding for you");
@@ -161,7 +161,7 @@ socket.on("bid", ({ player, amount, errors }) => {
 //////////////////////////////////
 
 socket.on("category", ({ categories, max, endTime, bidHistory }) => {
-  bidList.innerHTML=""
+  bidList.innerHTML = "";
   if (bidHistory) {
     bidHistory.forEach(({ name, amount }) => {
       bidList.innerHTML += `<li>${name} $${amount}`;
@@ -171,7 +171,7 @@ socket.on("category", ({ categories, max, endTime, bidHistory }) => {
   bidButton.style.display = "none";
   bidAmount.style.display = "none";
 
-  console.log(endTime, categories, endTime)
+  console.log(endTime, categories, endTime);
   canBid = false;
   categoryInput.style.display = "none";
 
@@ -188,6 +188,7 @@ socket.on("category", ({ categories, max, endTime, bidHistory }) => {
 
   if (currentPlayer.id === max.player.id) {
     categoryInput.style.display = "inline";
+    categoryInput.innerHTML = "";
     categories.forEach((category) => {
       let opt = document.createElement("option");
       opt.value = category;
@@ -204,7 +205,7 @@ socket.on("category", ({ categories, max, endTime, bidHistory }) => {
       categoryBtn.style.display = "none";
     });
   } else {
-    data.style.display="inline"
+    data.style.display = "inline";
     document.getElementById(
       "data"
     ).innerHTML = `${max.player.name} is choosing a category`;
@@ -213,59 +214,63 @@ socket.on("category", ({ categories, max, endTime, bidHistory }) => {
 });
 
 // Question and answer handling
-socket.on("question", ({ question, bidPlayer, chosenCategory, endTime, bidHistory }) => {
-  if (bidHistory) {
-    bidHistory.forEach(({ name, amount }) => {
-      bidList.innerHTML += `<li>${name} $${amount}`;
-    });
+socket.on(
+  "question",
+  ({ question, bidPlayer, chosenCategory, endTime, bidHistory }) => {
+    if (bidHistory) {
+      bidList.innerHTML = "";
+      bidHistory.forEach(({ name, amount }) => {
+        bidList.innerHTML += `<li>${name} $${amount}`;
+      });
+    }
+
+    canBid = false;
+    questionText.style.display = "inline";
+    questionText.innerHTML = `<p>Catgory Chosen is: ${chosenCategory}.</p> Q)${question.text}`;
+
+    // timer based on the question duration
+    // let time = question.duration;
+    // clearInterval(interval);
+    // interval = setInterval(() => {
+    //   if (time < 0) {
+    //     clearInterval(interval);
+    //     // End the bidding process
+    //     if (currentPlayer.id === bidPlayer._id) {
+    //       socket.emit("answerGiven", false);
+    //     }
+    //   } else {
+    //     timer.innerHTML = `${time} seconds left for answering`;
+    //     time--;
+    //   }
+    // }, 1000);
+
+    // question timer
+    let time = Math.floor((endTime - Date.now()) / 1000);
+    clearInterval(interval);
+    interval = setInterval(() => {
+      if (time < 0) clearInterval(interval);
+      else {
+        timer.innerHTML = `${time} seconds left for answering`;
+        time--;
+      }
+    }, 1000);
+
+    // bidPlayer can only give the answer
+    if (currentPlayer.id === bidPlayer._id) {
+      answer.style.display = "inline";
+      answerSubmit.style.display = "inline";
+
+      answerSubmit.addEventListener("click", () => {
+        let givenAnswer = answer.value;
+        console.log(givenAnswer);
+        let correct = false;
+        if (checkAnswer(givenAnswer, question.answer)) correct = true;
+        socket.emit("answerGiven", correct);
+      });
+    }
+    console.log("bidplayer", bidPlayer);
   }
-
-  canBid = false;
-  questionText.style.display = "inline";
-  questionText.innerHTML = `<p>Catgory Chosen is: ${chosenCategory}.</p> Q)${question.text}`;
-
-  // timer based on the question duration
-  // let time = question.duration;
-  // clearInterval(interval);
-  // interval = setInterval(() => {
-  //   if (time < 0) {
-  //     clearInterval(interval);
-  //     // End the bidding process
-  //     if (currentPlayer.id === bidPlayer._id) {
-  //       socket.emit("answerGiven", false);
-  //     }
-  //   } else {
-  //     timer.innerHTML = `${time} seconds left for answering`;
-  //     time--;
-  //   }
-  // }, 1000);
-
-   // question timer
-   let time = Math.floor((endTime - Date.now()) / 1000);
-   clearInterval(interval);
-   interval = setInterval(() => {
-     if (time < 0) clearInterval(interval);
-     else {
-       timer.innerHTML = `${time} seconds left for answering`;
-       time--;
-     }
-   }, 1000);
-
-  // bidPlayer can only give the answer
-  if (currentPlayer.id === bidPlayer._id) {
-    answer.style.display = "inline";
-    answerSubmit.style.display = "inline";
-
-    answerSubmit.addEventListener("click", () => {
-      let givenAnswer = answer.value;
-      console.log(givenAnswer);
-      let correct = false;
-      if (checkAnswer(givenAnswer, question.answer)) correct = true;
-      socket.emit("answerGiven", correct);
-    });
-  }
-  console.log("bidplayer", bidPlayer);
-});
+);
 
 // Handling Elimination
 socket.on("eliminate", ({ ineligiblePlayers }) => {
