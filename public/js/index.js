@@ -76,12 +76,19 @@ socket.on("start", ({ bidPlayer, endTime, bidHistory }) => {
   questionText.style.display = "none";
   answer.style.display = "none";
   answerSubmit.style.display = "none";
+  data.style.display="none"
 
   if (currentPlayer.id === bidPlayer._id) {
     console.log("Everyone bidding for you");
-    bidButton.innerHTML = `<span class="first">Cannot bid for yourself</span>`;
-    bidButton.disabled = true;
+    document.getElementById(
+      "bid-player"
+    ).innerHTML = `Everyone is bidding for you`;
+    // bidButton.innerHTML = `<span class="first">Cannot bid for yourself</span>`;
+    bidButton.style.display = "none";
+    bidAmount.style.display = "none";
   } else {
+    bidButton.style.display = "inline";
+    bidAmount.style.display = "inline";
     console.log("You can bid");
     bidButton.innerHTML = `<span class="first">Bid</span>`;
     bidButton.disabled = false;
@@ -153,7 +160,18 @@ socket.on("bid", ({ player, amount, errors }) => {
 // Choosing Question category
 //////////////////////////////////
 
-socket.on("category", ({ categories, max, endTime }) => {
+socket.on("category", ({ categories, max, endTime, bidHistory }) => {
+  bidList.innerHTML=""
+  if (bidHistory) {
+    bidHistory.forEach(({ name, amount }) => {
+      bidList.innerHTML += `<li>${name} $${amount}`;
+    });
+  }
+  //do not dispaly bid button or bid input
+  bidButton.style.display = "none";
+  bidAmount.style.display = "none";
+
+  console.log(endTime, categories, endTime)
   canBid = false;
   categoryInput.style.display = "none";
 
@@ -186,6 +204,7 @@ socket.on("category", ({ categories, max, endTime }) => {
       categoryBtn.style.display = "none";
     });
   } else {
+    data.style.display="inline"
     document.getElementById(
       "data"
     ).innerHTML = `${max.player.name} is choosing a category`;
@@ -194,26 +213,43 @@ socket.on("category", ({ categories, max, endTime }) => {
 });
 
 // Question and answer handling
-socket.on("question", ({ question, bidPlayer, chosenCategory }) => {
+socket.on("question", ({ question, bidPlayer, chosenCategory, endTime, bidHistory }) => {
+  if (bidHistory) {
+    bidHistory.forEach(({ name, amount }) => {
+      bidList.innerHTML += `<li>${name} $${amount}`;
+    });
+  }
+
   canBid = false;
   questionText.style.display = "inline";
   questionText.innerHTML = `<p>Catgory Chosen is: ${chosenCategory}.</p> Q)${question.text}`;
 
   // timer based on the question duration
-  let time = question.duration;
-  clearInterval(interval);
-  interval = setInterval(() => {
-    if (time < 0) {
-      clearInterval(interval);
-      // End the bidding process
-      if (currentPlayer.id === bidPlayer._id) {
-        socket.emit("answerGiven", false);
-      }
-    } else {
-      timer.innerHTML = `${time} seconds left for answering`;
-      time--;
-    }
-  }, 1000);
+  // let time = question.duration;
+  // clearInterval(interval);
+  // interval = setInterval(() => {
+  //   if (time < 0) {
+  //     clearInterval(interval);
+  //     // End the bidding process
+  //     if (currentPlayer.id === bidPlayer._id) {
+  //       socket.emit("answerGiven", false);
+  //     }
+  //   } else {
+  //     timer.innerHTML = `${time} seconds left for answering`;
+  //     time--;
+  //   }
+  // }, 1000);
+
+   // question timer
+   let time = Math.floor((endTime - Date.now()) / 1000);
+   clearInterval(interval);
+   interval = setInterval(() => {
+     if (time < 0) clearInterval(interval);
+     else {
+       timer.innerHTML = `${time} seconds left for answering`;
+       time--;
+     }
+   }, 1000);
 
   // bidPlayer can only give the answer
   if (currentPlayer.id === bidPlayer._id) {

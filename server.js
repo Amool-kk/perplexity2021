@@ -80,10 +80,9 @@ app.get("/game", requireAuth, (req, res) => {
 ////////////////////////////
 
 let bidPlayer;
-let idx = 0;
+let idx = -1;
 // will track the round eliminate players after every 8 rounds
 let roundNo = 1;
-let interval;
 let noOfPlayers;
 
 let max = {
@@ -95,6 +94,8 @@ let currentBidSession = null;
 const liveUsers = [];
 const validCategories = [];
 let interval;
+let question;
+let chosenCategory
 
 /////////////////////////////
 // Utility Functions
@@ -113,10 +114,10 @@ function handleTimer(time, callback) {
 }
 
 const showCategories = async () => {
+  validCategories.length=0
   // Send all categories which have available questions
   const categories = await Category.find({});
-  const lastChosenCategory = await User.findById(currentBidSession.maxPlayer)
-    .lastCategory;
+  const lastChosenCategory = await User.findById(currentBidSession.maxPlayer).lastCategory;
 
   categories.forEach((category) => {
     if (
@@ -127,16 +128,8 @@ const showCategories = async () => {
     }
   });
 
-  currentBidSession.categoryTimeEnd = Date.now() + 20 * 1000;
-  currentBidSession.save();
-
-  io.sockets.emit("category", {
-    categories: validCategories,
-    max,
-    endTime: Date.parse(currentBidSession.categoryTimeEnd),
-  });
-
   handleTimer(20, async function () {
+    console.log("end of cat choosing")
     if (!currentBidSession.chosenCategory) {
       const foundMaxUser = liveUsers.find(
         (user) => user.userId == currentBidSession.maxPlayer
@@ -145,7 +138,9 @@ const showCategories = async () => {
         (user) => user.userId == currentBidSession.bidPlayer
       );
       if (!(foundMaxUser && foundBidPlayer)) startRound();
-      if (foundMaxUser) {
+      else {
+        //handle this in frontend and display loss of points in toast
+        io.sockets.emit("noCategoryChosen")
         await User.findByIdAndUpdate(currentBidSession.maxPlayer, {
           $inc: {
             score: -max.amount,
@@ -154,9 +149,38 @@ const showCategories = async () => {
       }
     }
   });
+
+  currentBidSession.categoryTimeEnd = Date.now() + 20 * 1000;
+  currentBidSession.save();
+  console.log("category time end ", currentBidSession.categoryTimeEnd)
+  io.sockets.emit("category", {
+    categories: validCategories,
+    max,
+    endTime: currentBidSession.categoryTimeEnd,
+  });
+};
+
+
+const updateLeaderBoard = async () => {
+  const players = await User.find({ role: "user", eligible: true })
+    .sort({ score: -1 })
+    .select({
+      name: 1,
+      profilePhoto: 1,
+      score: 1,
+    });
+  io.sockets.emit("updateBoard", { players });
 };
 
 const startRound = async () => {
+  updateLeaderBoard();
+
+  idx++;
+  console.log(noOfPlayers);
+  if (idx === noOfPlayers) {
+    idx = 0;
+  }
+
   console.log(idx);
 
   max.amount = 0;
@@ -191,6 +215,7 @@ const startRound = async () => {
   });
 
   console.log("game started");
+  console.log("bid time end", currentBidSession.bidTimeEnd)
 
   console.log("Player currently being bid on", bidPlayer);
   io.sockets.emit("start", {
@@ -198,17 +223,6 @@ const startRound = async () => {
     bidPlayer,
     endTime: Date.parse(currentBidSession.bidTimeEnd),
   });
-};
-
-const updateLeaderBoard = async () => {
-  const players = await User.find({ role: "user", eligible: true })
-    .sort({ score: -1 })
-    .select({
-      name: 1,
-      profilePhoto: 1,
-      score: 1,
-    });
-  io.sockets.emit("updateBoard", { players });
 };
 
 /////////////////////////////
@@ -226,19 +240,41 @@ io.on("connection", (socket) => {
     liveUsers.push(playerInfo);
 
     // Handling Players who are joining in between
-    if (
-      currentBidSession &&
-      Date.parse(currentBidSession.bidTimeEnd) - Date.now() > 0
-    ) {
-      // bid session is present and time left
-      socket.emit("start", {
-        endTime: Date.parse(currentBidSession.bidTimeEnd),
-        // bidPlayer: currentBidSession.bidPlayer,
-        bidPlayer,
-        bidHistory: currentBidSession.bidHistory,
-      });
+    if (currentBidSession)
+    {
+      if(Date.parse(currentBidSession.bidTimeEnd) - Date.now() > 0)
+      {
+        // bid session is present and time left
+        socket.emit("start", {
+          endTime: Date.parse(currentBidSession.bidTimeEnd),
+          // bidPlayer: currentBidSession.bidPlayer,
+          bidPlayer,
+          bidHistory: currentBidSession.bidHistory,
+        });
+      }
+      else if(currentBidSession.categoryTimeEnd - Date.now() > 0)
+      {
+        console.log("connection remade during category choosing")
+        socket.emit("category",{
+          categories: validCategories,
+          max,
+          endTime: currentBidSession.categoryTimeEnd,
+          bidHistory: currentBidSession.bidHistory,
+        })
+      }
+      else if(currentBidSession.answerTimeEnd - Date.now() > 0)
+      {
+        console.log("connection remade during answering")
+        socket.emit("question",{
+          question,
+          bidPlayer,
+          chosenCategory,
+          endTime: currentBidSession.answerTimeEnd,
+          bidHistory: currentBidSession.bidHistory,
+        })
+      }
       updateLeaderBoard();
-    }
+    } 
   });
 
   socket.on("disconnect", () => {
@@ -322,9 +358,11 @@ io.on("connection", (socket) => {
   //   io.sockets.emit("category", { categories, bidPlayer, max });
   // });
 
-  let question;
-
   socket.on("chosenCategory", async ({ chosenCategory, currentPlayer }) => {
+    clearInterval(interval)
+    currentBidSession.categoryTimeEnd=0
+    // console.log(chosenCategory)
+    chosenCategory=chosenCategory
     console.log("they chose", chosenCategory);
     user = await User.findByIdAndUpdate(currentPlayer.id, {
       lastCategory: chosenCategory,
@@ -347,15 +385,31 @@ io.on("connection", (socket) => {
         question = validQuestions[0];
         question.disabled = true;
 
-        await Category.updateOne(
+        let updatedCategory= await Category.updateOne(
           { name: chosenCategory },
-          { $set: { "questions.$[element].disabled": true } },
+          { 
+            $set: { "questions.$[element].disabled": true },
+            $inc: {disabledCount : 1}
+          },
           {
             arrayFilters: [{ "element._id": question._id }],
           }
         );
 
-        io.sockets.emit("question", { question, bidPlayer, chosenCategory });
+        console.log("updated Category,", updatedCategory)
+
+        currentBidSession.answerTimeEnd = Date.now() + question.duration * 1000;
+        currentBidSession.save();
+        endTime= currentBidSession.answerTimeEnd
+
+        console.log("answer time end ", currentBidSession.answerTimeEnd)
+
+        io.sockets.emit("question", { 
+          question, 
+          bidPlayer, 
+          chosenCategory, 
+          endTime: currentBidSession.answerTimeEnd, 
+          bidHistory: currentBidSession.bidHistory});
       }
     } catch (error) {
       console.log(error);
@@ -364,6 +418,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("answerGiven", async (correct) => {
+    currentBidSession.answerTimeEnd=0
+    clearInterval(interval)
+    console.log("answer given", correct)
     if (correct) {
       await User.findByIdAndUpdate(bidPlayer._id, {
         $inc: {
@@ -387,11 +444,7 @@ io.on("connection", (socket) => {
         },
       });
     }
-    idx++;
-    console.log(noOfPlayers);
-    if (idx === noOfPlayers) {
-      idx = 0;
-    }
+   
     io.sockets.emit("roundEnd");
     startRound();
   });
