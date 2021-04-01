@@ -437,6 +437,8 @@ io.on("connection", (socket) => {
       });
     }
 
+    io.sockets.emit("result", { correct, name: bidPlayer.name });
+
     updateLeaderBoard();
 
     // Waiting for 30 seconds before next round

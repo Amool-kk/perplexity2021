@@ -48,15 +48,6 @@ bidButton.addEventListener("click", () => {
       player: currentPlayer,
       amount: parseInt(bidAmount.value),
     });
-    // if (bidAmount.value >= 0 && bidAmount.value <= 1000) {
-    //   socket.emit("bid", {
-    //     player: currentPlayer,
-    //     amount: bidAmount.value,
-    //   });
-    // } else {
-    //   toastBody.innerHTML = "Invalid bid, try again";
-    //   $(".toast").toast("show");
-    // }
   }
   bidAmount.value = "";
 });
@@ -136,31 +127,12 @@ socket.on("bid", ({ player, amount, errors }) => {
   }
 });
 
-// socket.on("bid", (data) => {
-//   console.log(data);
-//   content = data.content;
-//   bidPlayer = data.bidPlayer;
-//   console.log("curplayer", currentPlayer);
-//   console.log("bid made by", content);
-//   if (
-//     content.player.id === currentPlayer.id ||
-//     currentPlayer.id === bidPlayer._id
-//   ) {
-//     bidButton.disabled = true;
-//   } else {
-//     bidButton.disabled = false;
-//   }
-//   bidList.innerHTML += `<li>${content.player.name} $${content.amount}`;
-//   if (content.amount > maxBidValue) {
-//     maxBidValue = content.amount;
-//   }
-// });
-
 //////////////////////////////////
 // Choosing Question category
 //////////////////////////////////
 
 socket.on("category", ({ categories, max, endTime, bidHistory }) => {
+  document.getElementById("bid-player").innerHTML = "";
   bidList.innerHTML = "";
   if (bidHistory) {
     bidHistory.forEach(({ name, amount }) => {
@@ -226,23 +198,7 @@ socket.on(
 
     canBid = false;
     questionText.style.display = "inline";
-    questionText.innerHTML = `<p>Catgory Chosen is: ${chosenCategory}.</p> Q)${question.text}`;
-
-    // timer based on the question duration
-    // let time = question.duration;
-    // clearInterval(interval);
-    // interval = setInterval(() => {
-    //   if (time < 0) {
-    //     clearInterval(interval);
-    //     // End the bidding process
-    //     if (currentPlayer.id === bidPlayer._id) {
-    //       socket.emit("answerGiven", false);
-    //     }
-    //   } else {
-    //     timer.innerHTML = `${time} seconds left for answering`;
-    //     time--;
-    //   }
-    // }, 1000);
+    questionText.innerHTML = `<p>Category Chosen: ${chosenCategory}.</p> <br> Q. ${question.text}`;
 
     // question timer
     let time = Math.floor((endTime - Date.now()) / 1000);
@@ -266,11 +222,22 @@ socket.on(
         let correct = false;
         if (checkAnswer(givenAnswer, question.answer)) correct = true;
         socket.emit("answerGiven", correct);
+
+        answer.style.display = "none";
+        answerSubmit.style.display = "none";
       });
     }
     console.log("bidplayer", bidPlayer);
   }
 );
+
+socket.on("result", ({ correct, name }) => {
+  let msg = "";
+  if (correct) msg = `${name} has given correct answer`;
+  else msg = `${name} has given an incorrect answer`;
+  toastBody.innerHTML = "msg";
+  $(".toast").toast("show");
+});
 
 // Handling Elimination
 socket.on("elimination", ({ ineligiblePlayers }) => {
@@ -284,6 +251,7 @@ socket.on("elimination", ({ ineligiblePlayers }) => {
     toastBody.innerHTML = "You have been eliminated from the game";
     $(".toast").toast("show");
   }
+  clearElements();
 });
 
 socket.on("updateBoard", (data) => {
@@ -303,6 +271,7 @@ socket.on("updateBoard", (data) => {
 
 socket.on("wait", ({ endTime }) => {
   canBid = false;
+  clearElements();
   let time = Math.floor((endTime - Date.now()) / 1000);
   clearInterval(interval);
   interval = setInterval(() => {
@@ -327,7 +296,9 @@ socket.on("stop-game", () => {
   clearInterval(interval);
   toastBody.innerHTML = "Game is currently paused now, will resume in sometime";
   $(".toast").toast("show");
+  timer.innerHTML = "Game is currently paused";
   // Clear remaining elements
+  clearElements();
 });
 
 function checkAnswer(givenAnswer, correctAnswer) {
@@ -342,4 +313,6 @@ function checkAnswer(givenAnswer, correctAnswer) {
 function clearElements() {
   // This function will clear the necessary elements
   bidList.innerHTML = "";
+  data.innerHTML = "";
+  questionText.innerHTML = "";
 }
