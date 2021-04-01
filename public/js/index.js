@@ -235,7 +235,7 @@ socket.on("result", ({ correct, name }) => {
   let msg = "";
   if (correct) msg = `${name} has given correct answer`;
   else msg = `${name} has given an incorrect answer`;
-  toastBody.innerHTML = "msg";
+  toastBody.innerHTML = msg;
   $(".toast").toast("show");
 });
 

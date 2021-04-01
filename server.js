@@ -310,7 +310,7 @@ io.on("connection", (socket) => {
     let errors = "";
     if (amount > 1000) errors = "Can't bid greater than 1000";
     else if (amount < 0) errors = "Bid amount can't be negative";
-    else if (amount < max.amount) errors = `Can't bid less than $${max.amount}`;
+    else if (amount <= max.amount) errors = `You have to bid greater than $${max.amount}`;
     if (errors) socket.emit("bid", { errors });
     else {
       max.amount = amount;
