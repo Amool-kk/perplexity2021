@@ -199,7 +199,7 @@ a:hover {
 }
 
 #leaderboard {
-    font-family: Zetkon;
+    font-family: Zekton !important;
     font-size: 1.2rem;
 }
 
@@ -256,7 +256,7 @@ a:hover {
             flex-grow: 2;
     flex-basis: 10rem;
     font-size: 0.9rem;
-    font-family: Zetkon;
+    font-family: Zekton;
 }
 
 .list .item .score {
