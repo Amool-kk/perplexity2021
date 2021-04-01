@@ -450,6 +450,7 @@ io.on("connection", (socket) => {
 
     handleTimer(30, function () {
       io.sockets.emit("roundEnd");
+      startRound();
     });
   });
 
