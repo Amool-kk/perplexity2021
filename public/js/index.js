@@ -309,6 +309,7 @@ socket.on("stop-game", () => {
   timer.innerHTML = "Game is currently paused";
   // Clear remaining elements
   clearElements();
+  document.getElementById("bid-player").innerHTML = "";
 });
 
 function checkAnswer(givenAnswer, correctAnswer) {

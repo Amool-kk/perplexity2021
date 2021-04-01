@@ -62,7 +62,7 @@ body {
 
 .main-cont, .bid-cont , .leaderboard{
     text-shadow:1px 1px 0px #888;
-    background-color:rgba(52,60,65,.4);
+    background-color:rgba(52,60,65,.5);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
     display: flex;
@@ -84,7 +84,7 @@ body {
     color: white;
     text-align: center;
     font-size: 1.2rem !important;
-    font-family: Zetkon;
+    font-family: Zekton;
 }
 
 .main-cont #answerSubmit, #bid-btn {
