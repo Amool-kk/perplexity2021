@@ -352,7 +352,7 @@ io.on("connection", (socket) => {
     clearInterval(interval);
     currentBidSession.categoryTimeEnd = 0;
     // console.log(chosenCategory)
-    chosenCategory = chosenCategory;
+    currentBidSession.chosenCategory = chosenCategory;
     console.log("they chose", chosenCategory);
     user = await User.findByIdAndUpdate(currentPlayer.id, {
       lastCategory: chosenCategory,
