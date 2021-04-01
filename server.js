@@ -267,7 +267,7 @@ io.on("connection", (socket) => {
         socket.emit("question", {
           question,
           bidPlayer,
-          chosenCategory,
+          chosenCategory: currentBidSession.chosenCategory,
           endTime: Date.parse(currentBidSession.answerTimeEnd),
           bidHistory: currentBidSession.bidHistory,
         });
