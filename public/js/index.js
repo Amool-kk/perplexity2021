@@ -25,7 +25,12 @@ socket.on("connect", function (data) {
 });
 
 if (currentPlayer.eligible === false) {
-  document.querySelector("body").style.display = "none";
+  clearElements();
+  bidAmount.style.display = "none";
+  bidButton.style.display = "none";
+  timer.innerHTML = "You have been eliminated from the game";
+  answer.style.display = "none";
+  answerSubmit.style.display = "none";
 }
 
 console.log(document.getElementById("player-id").innerHTML);
@@ -250,8 +255,13 @@ socket.on("elimination", ({ ineligiblePlayers }) => {
     // Clear everying on the page
     toastBody.innerHTML = "You have been eliminated from the game";
     $(".toast").toast("show");
+    timer.innerHTML = "You have been eliminated from the game";
   }
   clearElements();
+  bidAmount.style.display = "none";
+  bidButton.style.display = "none";
+  answer.style.display = "none";
+  answerSubmit.style.display = "none";
 });
 
 socket.on("updateBoard", (data) => {
