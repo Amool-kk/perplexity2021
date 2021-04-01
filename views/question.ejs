@@ -10,18 +10,19 @@
     <form action="/admin/question" method="POST">
       <label for="question">Question: </label>
       <textarea name="text" id="" cols="40" rows="5"></textarea>
-      <br />
+      <br /><br />
       <label for="answer">Answer: </label>
       <textarea name="answer" id="" cols="40" rows="5"></textarea>
-      <br />
-      <label for="points">Points: </label>
-      <input name="points" type="text" />
-      <br />
+      <br /><br />
       <label for="duration">Duration: </label>
       <input name="duration" type="text" />
-      <br />
+      <br /><br />
       <label for="category_name">Category: </label>
-      <input name="category_name" type="text" />
+      <select name="category_name">
+        <% categories.forEach((category) => { %>
+        <option value="<%= category.name %>"><%= category.name %></option>
+        <% }) %>
+      </select>
       <br />
       <br />
       <button type="submit">Submit</button>

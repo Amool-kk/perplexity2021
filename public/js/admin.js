@@ -6,7 +6,12 @@ document.getElementById("start-game").addEventListener("click", () => {
   console.log("game started");
 });
 
-socket.on("roundEnd", () => {
-  // alert("New Round is going to start");
-  socket.emit("next-round");
+document.getElementById("stop-game").addEventListener("click", () => {
+  socket.emit("stop-game");
+  console.log("Game stopped");
+});
+
+document.getElementById("eliminate").addEventListener("click", () => {
+  socket.emit("elimination");
+  console.log("Elimination process begins");
 });

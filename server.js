@@ -82,7 +82,7 @@ app.get("/game", requireAuth, (req, res) => {
 let bidPlayer;
 let idx = -1;
 // will track the round eliminate players after every 8 rounds
-let roundNo = 1;
+let roundNo = 0;
 let noOfPlayers;
 
 let max = {
@@ -179,7 +179,7 @@ const updateLeaderBoard = async () => {
 
 startRound = async () => {
   updateLeaderBoard();
-
+  roundNo++;
   idx++;
   console.log(noOfPlayers);
   if (idx === noOfPlayers) {
@@ -262,15 +262,25 @@ io.on("connection", (socket) => {
           endTime: currentBidSession.categoryTimeEnd,
           bidHistory: currentBidSession.bidHistory,
         });
-      } else if (currentBidSession.answerTimeEnd - Date.now() > 0) {
+      } else if (Date.parse(currentBidSession.answerTimeEnd) - Date.now() > 0) {
         console.log("connection remade during answering");
         socket.emit("question", {
           question,
           bidPlayer,
           chosenCategory,
-          endTime: currentBidSession.answerTimeEnd,
+          endTime: Date.parse(currentBidSession.answerTimeEnd),
           bidHistory: currentBidSession.bidHistory,
         });
+      } else if (currentBidSession.roundEnd - Date.now() > 0) {
+        console.log(
+          "connection remade while waiting for next round",
+          currentBidSession.roundEnd
+        );
+        socket.emit("wait", {
+          endTime: Date.parse(currentBidSession.roundEnd),
+        });
+      } else if (currentBidSession.stopped) {
+        socket.emit("stop-game");
       }
       updateLeaderBoard();
     }
@@ -295,38 +305,6 @@ io.on("connection", (socket) => {
     console.log(liveUsers);
   });
 
-  // Next round handling by the admin
-  socket.on("next-round", async () => {
-    roundNo++;
-    if (roundNo % 8 === 1) {
-      // Eliminate the players
-      lastPlayers = await User.find({ role: "user", eligible: true }).sort({
-        score: -1,
-      });
-      await User.findByIdAndUpdate(lastPlayers[0]._id, {
-        $set: {
-          eligible: false,
-        },
-      });
-      await User.findByIdAndUpdate(lastPlayers[1]._id, {
-        $set: {
-          eligible: false,
-        },
-      });
-
-      // eleminate the players on front-end
-      socket.emit("eliminate", {
-        ineligiblePlayers: [lastPlayers[0], lastPlayers[1]],
-      });
-    }
-
-    // update the leaderboard
-    updateLeaderBoard();
-
-    // choose the next player to be bid on
-    startRound();
-  });
-
   socket.on("bid", ({ player, amount }) => {
     console.log(player, amount);
     let errors = "";
@@ -346,6 +324,19 @@ io.on("connection", (socket) => {
       currentBidSession.save();
       bids.push({ player, amount });
       io.sockets.emit("bid", { player, amount });
+
+      // Stop bid if max bid reached
+      if (amount === 1000) {
+        clearInterval(interval);
+        const foundMaxUser = liveUsers.find(
+          (user) => user.userId == currentBidSession.maxPlayer
+        );
+        const foundBidPlayer = liveUsers.find(
+          (user) => user.userId == currentBidSession.bidPlayer
+        );
+        if (!(foundMaxUser && foundBidPlayer)) startRound();
+        else showCategories();
+      }
     }
   });
 
@@ -407,7 +398,8 @@ io.on("connection", (socket) => {
           question,
           bidPlayer,
           chosenCategory,
-          endTime: currentBidSession.answerTimeEnd,
+          endTime: Date.parse(currentBidSession.answerTimeEnd),
+          // endTime: (currentBidSession.answerTimeEnd),
           bidHistory: currentBidSession.bidHistory,
         });
       }
@@ -445,7 +437,53 @@ io.on("connection", (socket) => {
       });
     }
 
-    io.sockets.emit("roundEnd");
-    startRound();
+    updateLeaderBoard();
+
+    // Waiting for 30 seconds before next round
+    currentBidSession.roundEnd = Date.now() + 30 * 1000;
+    currentBidSession.save();
+    io.sockets.emit("wait", {
+      endTime: Date.parse(currentBidSession.roundEnd),
+    });
+
+    handleTimer(30, function () {
+      io.sockets.emit("roundEnd");
+    });
+  });
+
+  socket.on("stop-game", () => {
+    clearInterval(interval);
+    currentBidSession.stopped = true;
+    currentBidSession.bidTimeEnd = Date.now();
+    currentBidSession.categoryTimeEnd = Date.now();
+    currentBidSession.answerTimeEnd = Date.now();
+    currentBidSession.save();
+    socket.broadcast.emit("stop-game");
+  });
+
+  socket.on("elimination", async () => {
+    // Eliminate the players
+    lastPlayers = await User.find({ role: "user", eligible: true }).sort({
+      score: 1,
+    });
+
+    await User.findByIdAndUpdate(lastPlayers[0]._id, {
+      $set: {
+        eligible: false,
+      },
+    });
+    await User.findByIdAndUpdate(lastPlayers[1]._id, {
+      $set: {
+        eligible: false,
+      },
+    });
+
+    // eleminate the players on front-end
+    socket.broadcast.emit("elimination", {
+      ineligiblePlayers: [lastPlayers[0], lastPlayers[1]],
+    });
+
+    // update the leaderboard
+    updateLeaderBoard();
   });
 });

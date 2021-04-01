@@ -273,14 +273,16 @@ socket.on(
 );
 
 // Handling Elimination
-socket.on("eliminate", ({ ineligiblePlayers }) => {
+socket.on("elimination", ({ ineligiblePlayers }) => {
+  console.log(ineligiblePlayers);
   if (
     currentPlayer.id === ineligiblePlayers[0]._id ||
     currentPlayer.id === ineligiblePlayers[1]._id
   ) {
     currentPlayer.eligible = false;
-    document.querySelector("body").style.display = "none";
-    alert("You have been eliminated from this game");
+    // Clear everying on the page
+    toastBody.innerHTML = "You have been eliminated from the game";
+    $(".toast").toast("show");
   }
 });
 
@@ -299,10 +301,33 @@ socket.on("updateBoard", (data) => {
   });
 });
 
+socket.on("wait", ({ endTime }) => {
+  canBid = false;
+  let time = Math.floor((endTime - Date.now()) / 1000);
+  clearInterval(interval);
+  interval = setInterval(() => {
+    if (time < 0) clearInterval(interval);
+    else {
+      timer.innerHTML = `${time} seconds before the next round begins`;
+      time--;
+    }
+  }, 1000);
+
+  // Cleanup everything on the page
+  bidList.innerHTML = "";
+});
+
 socket.on("roundEnd", () => {
   toastBody.innerHTML = "New Round Begins Now!";
   $(".toast").toast("show");
-  maxBidValue = 0;
+});
+
+socket.on("stop-game", () => {
+  canBid = false;
+  clearInterval(interval);
+  toastBody.innerHTML = "Game is currently paused now, will resume in sometime";
+  $(".toast").toast("show");
+  // Clear remaining elements
 });
 
 function checkAnswer(givenAnswer, correctAnswer) {
@@ -312,4 +337,9 @@ function checkAnswer(givenAnswer, correctAnswer) {
   )
     return 1;
   return 0;
+}
+
+function clearElements() {
+  // This function will clear the necessary elements
+  bidList.innerHTML = "";
 }

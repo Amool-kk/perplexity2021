@@ -8,7 +8,6 @@ module.exports.category_get = async (req, res) => {
 };
 
 module.exports.category_post = async (req, res) => {
-  console.log(req.body);
   const { name } = req.body;
   try {
     const category = await Category.create({ name });
@@ -23,18 +22,17 @@ module.exports.category_post = async (req, res) => {
 module.exports.question_get = async (req, res) => {
   // const categories = await Category.find({});
   const questions = await Question.find({});
+  const categories = await Category.find({}).select({ name: 1, _id: 0 });
   // res.status(200).json(questions);
-  res.render("question", { questions });
+  res.render("question", { questions, categories });
 };
 
 module.exports.question_post = async (req, res) => {
-  console.log(req.body);
-  const { text, answer, points, duration, category_name } = req.body;
+  const { text, answer, duration, category_name } = req.body;
   try {
     const question = await Question.create({
       text,
       answer,
-      points,
       duration,
       category: category_name,
     });

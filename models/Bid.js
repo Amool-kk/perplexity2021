@@ -5,9 +5,14 @@ const bidSchema = mongoose.Schema({
   bidPlayer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   bidTimeEnd: Date,
   catetoryTimeEnd: Date,
-  answerTimeLeft: Date,
+  answerTimeEnd: Date,
+  roundEnd: Date,
   maxBid: Number,
   maxPlayer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  stopped: {
+    type: Boolean,
+    default: false,
+  },
   bidHistory: [
     {
       name: String,
