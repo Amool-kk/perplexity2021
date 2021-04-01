@@ -105,9 +105,10 @@ a {
 }
 
 .social {
-  color: white;
-  margin: 0 1%;
-  font-size: 30px;
+  width: 25px;
+  height: auto;
+  color: whitesmoke;
+  margin-right: 1%;
 }
 
 #arhn {
