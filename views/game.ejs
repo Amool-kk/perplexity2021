@@ -41,7 +41,7 @@
             aria-expanded="false"
             aria-label="Toggle navigation"
           >
-            <!-- <span class="navbar-toggler-icon" /> -->
+            <span class="navbar-toggler-icon" />
           </button>
           <div id="navbar-links" class="collapse navbar-collapse">
             <ul class="navbar-nav ml-md-auto d-md-flex">
@@ -60,7 +60,7 @@
       </div>
     </header>
     <!-- Bootstrap Toasts -->
-    <div class="toast" role="alert" data-delay="2000">
+    <div class="toast" role="alert" data-delay="2000" style="margin-top: 4rem;">
       <div class="toast-header">
         <strong class="mr-auto">Perplexity</strong>
         <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">
@@ -76,7 +76,7 @@
             <div class="row">
               <div class="col-12 main-cont">
                 <h1 class="mt-3">Let's Bid</h1>
-                <h6 class="mt-3" id="bid-player"></h6>
+                <h6 class="mt-3" id="bid-player" style="font-family: Zekton; color: white; letter-spacing: 0.1ch;"></h6>
                 <div class="container mt-3">
                   <input
                     type="number"
@@ -100,6 +100,7 @@
                   name="category"
                   id="categoryInput"
                   style="display: none"
+                  class="mt-2"
                 ></select>
                 <!-- <div class="dropdown show mb-5 categories" style="display: none;">
                 <a class="button btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
